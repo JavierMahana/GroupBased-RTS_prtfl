@@ -41,3 +41,9 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: terrain
+    uniqueID: 884434797
+    locked: 0
+  - name: entities
+    uniqueID: 2548933265
+    locked: 0
