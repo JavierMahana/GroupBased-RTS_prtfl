@@ -4,6 +4,6 @@ using UnityEngine;
 
 public abstract class BehaviourSet
 {
-    public SteeringBehaviour.Behaviour baseBehaviour;
+
 
 }

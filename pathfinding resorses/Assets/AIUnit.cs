@@ -9,10 +9,14 @@ public class AIUnit : MonoBehaviour
 {
     public List<AIAgent> childs = new List<AIAgent>();
 
+    public AIUnitData data;
+
     public IAstarAI movementAI;
 
+    
     public Vector2 GetCohesionPosition(AIAgent requester)
     {
+        //esto debe luego entregar posiciones tomando en cuenta la formacion 
         return (Vector2)transform.position;
     }
 

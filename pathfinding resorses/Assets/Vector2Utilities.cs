@@ -4,6 +4,32 @@ using UnityEngine;
 
 public static class Vector2Utilities 
 {
+    public static float GetDistanceOfSquareEdgeAndCenterFromDirection(float squareRadious, Vector2 lineDirectionFromSquareCenter)
+    {
+        float xMag = Mathf.Abs(lineDirectionFromSquareCenter.x);
+        float yMag = Mathf.Abs(lineDirectionFromSquareCenter.y);
+
+        if (xMag == yMag)
+            return Mathf.Sqrt(Mathf.Pow(lineDirectionFromSquareCenter.x, 2) * 2);
+
+        float angle;
+        if (xMag > yMag)
+        {
+            //cos --> h = r/cos
+            //el angulo esta en el eje x.
+            angle = Mathf.Atan2(lineDirectionFromSquareCenter.y, lineDirectionFromSquareCenter.x);
+        }
+        else
+        {
+            //sen --> h = r/cos(pero los angulos son distintos)
+            //el angulo esta en el eje y.
+            angle = Mathf.Atan2(lineDirectionFromSquareCenter.x, lineDirectionFromSquareCenter.y);
+
+            
+        }
+        return squareRadious / Mathf.Abs(Mathf.Cos(angle));
+    }
+
     public static Vector2 Normalize(Vector2 a, out float magnitude)
     {
         magnitude = a.magnitude;
