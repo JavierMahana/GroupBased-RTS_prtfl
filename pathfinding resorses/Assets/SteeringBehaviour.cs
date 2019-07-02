@@ -22,7 +22,8 @@ public static class SteeringBehaviour
             case Behaviour.FOLLOW_PATH:
                 return FollowPath(requester);
             case Behaviour.SEPARATION:
-                return Separation(requester);
+                return null;
+                //return Separation(requester);
             case Behaviour.COHESION:
                 return Cohesion(requester);
             case Behaviour.VELOCITY_MATCH:
@@ -32,9 +33,10 @@ public static class SteeringBehaviour
             //case Behaviour.AVOIDANCE:
             //    return ObstacleAvoidance(requester);
             default:
-                return Vector2.zero;
+                return null;
         }
     }
+    
 
     //ok
     private static Vector2 FollowPath(AIAgent requester)
@@ -43,36 +45,65 @@ public static class SteeringBehaviour
         return nextPos;    
     }
 
-    private static Vector2? Separation(AIAgent requester)
+    public static Vector2? Separation(AIAgent requester, Vector2 desiredDirection, out AIAgent closestSiblin, out Vector2 directionToClosestSiblin)
     {
         Vector2 position = requester.transform.position;
-        List<AIAgent> siblins = requester.parent.childs;
+        List<AIAgent> siblins = requester.parent.children;
 
-        AIAgent closestSiblin = null; 
-        float closestSiblinSqrDistance = float.MaxValue;
-        for (int i = 0; i < siblins.Count; i++)
+        float closestSiblinSqrDistance;
+
+        GetClosestSiblin(requester, position, siblins, out closestSiblin, out closestSiblinSqrDistance);
+
+        float repulsionMaxSqrRange = Mathf.Pow(requester.data.radious * requester.data.separationRangeInRadious, 2);
+        directionToClosestSiblin = ((Vector2)closestSiblin.transform.position - position).normalized;
+
+        if (repulsionMaxSqrRange < closestSiblinSqrDistance)
+            return null;
+
+        
+
+        float angle = Vector2.SignedAngle(desiredDirection, directionToClosestSiblin);
+        if (angle > 0)
         {
-            AIAgent tempAgent = siblins[i];
-
-            if (tempAgent == requester)
-                continue;
-
-            float tempSqrDistance = Vector2Utilities.SqrDistance(position, tempAgent.transform.position);
-            if (tempSqrDistance < closestSiblinSqrDistance)
-            {
-                closestSiblin = tempAgent;
-                closestSiblinSqrDistance = tempSqrDistance;
-            }
+            return  position - Vector2.Perpendicular(desiredDirection) * requester.data.maxSpeed * Time.deltaTime;
         }
+        else
+        {
+            return position + Vector2.Perpendicular(desiredDirection) * requester.data.maxSpeed * Time.deltaTime;
+        }
+    }
+    public static Vector2? Separation(AIAgent requester, out AIAgent closestSiblin)
+    {
+        Vector2 position = requester.transform.position;
+        List<AIAgent> siblins = requester.parent.children;
+
+        float closestSiblinSqrDistance;
+
+        GetClosestSiblin(requester, position, siblins, out closestSiblin, out closestSiblinSqrDistance);
 
         float repulsionMaxSqrRange = Mathf.Pow(requester.data.radious * requester.data.separationRangeInRadious, 2);
         if (repulsionMaxSqrRange < closestSiblinSqrDistance)
             return null;
 
-        float speedMult = 1 - (closestSiblinSqrDistance / repulsionMaxSqrRange);
-        Vector2 direction = ((Vector2)closestSiblin.transform.position - position).normalized;
-        Vector2 desiredPos = position + direction * speedMult * requester.data.maxSpeed * Time.deltaTime;
+        Vector2 directionToClosestSiblin = ((Vector2)closestSiblin.transform.position - position).normalized;
 
+        Vector2 desiredPos = position + -directionToClosestSiblin * requester.data.maxSpeed * Time.deltaTime;
+        return desiredPos;
+    }
+    public static Vector2? Separation(AIAgent requester, AIAgent closestSiblin)
+    {
+        Vector2 position = requester.transform.position;
+        Vector2 closestSiblinPos = closestSiblin.transform.position;
+        List<AIAgent> siblins = requester.parent.children;
+
+        float closestSiblinSqrDistance = (position - closestSiblinPos).sqrMagnitude;
+        float repulsionMaxSqrRange = Mathf.Pow(requester.data.radious * requester.data.separationRangeInRadious, 2);
+        if (repulsionMaxSqrRange < closestSiblinSqrDistance)
+            return null;
+
+        Vector2 directionToClosestSiblin = ((Vector2)closestSiblin.transform.position - position).normalized;
+
+        Vector2 desiredPos = position + -directionToClosestSiblin * requester.data.maxSpeed * Time.deltaTime;
         return desiredPos;
     }
     //ok
@@ -146,4 +177,25 @@ public static class SteeringBehaviour
 
     //}
 
+
+
+    private static void GetClosestSiblin(AIAgent requester, Vector2 position, List<AIAgent> siblins, out AIAgent closestSiblin, out float closestSiblinSqrDistance)
+    {
+        closestSiblin = null;
+        closestSiblinSqrDistance = float.MaxValue;
+        for (int i = 0; i < siblins.Count; i++)
+        {
+            AIAgent tempAgent = siblins[i];
+
+            if (tempAgent == requester)
+                continue;
+
+            float tempSqrDistance = Vector2Utilities.SqrDistance(position, tempAgent.transform.position);
+            if (tempSqrDistance < closestSiblinSqrDistance)
+            {
+                closestSiblin = tempAgent;
+                closestSiblinSqrDistance = tempSqrDistance;
+            }
+        }
+    }
 }

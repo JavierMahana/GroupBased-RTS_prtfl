@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   radious: 0.15
   shape: 1
-  maxSpeed: 1
-  separationRangeInRadious: 3
+  maxSpeed: 1.2
+  wieghtMultiplier: 0.806
+  separationRangeInRadious: 2.15
+  pushRangeInRadious: 2
   slowDownStartRadious: 0.5
   stopRadious: 0.1

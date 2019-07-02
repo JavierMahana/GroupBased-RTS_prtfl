@@ -12,5 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 00252b5ec2fd54041a05a6033857997b, type: 3}
   m_Name: 1 unit_data
   m_EditorClassIdentifier: 
+  formationData: {fileID: 0}
+  type: 9
+  radious: 1.5
   closeUpBehaviourArea: 1
-  closeUpBehaviourMaxIntensityArea: 0.1
+  closeUpBehaviourMaxIntensityArea: 0.3

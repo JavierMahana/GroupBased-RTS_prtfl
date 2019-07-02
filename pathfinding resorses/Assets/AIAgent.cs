@@ -6,6 +6,8 @@ using Sirenix.OdinInspector;
 
 public class AIAgent : SerializedMonoBehaviour, IEntity
 {
+    public bool gizmos;
+
     public bool test;
 
     public AIUnit parent;
@@ -36,6 +38,17 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
 
     public IBehaviourSet ActiveBehaviourSet;
 
+
+
+    //private Vector2 acumulatedPush;
+    //public void Push(Vector2 directionNormalized, float force)
+    //{
+    //    if (acumulatedPush.sqrMagnitude < force * force)
+    //    {
+    //        acumulatedPush = directionNormalized * force;
+    //    }
+    //}
+
     private void Update()
     {
         if (test)
@@ -44,6 +57,20 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
         }
 
     }
+    private void LateUpdate()
+    {
+        //if (test)
+        //{
+        //    Vector2 newPos = (Vector2)transform.position + acumulatedPush;
+        //    transform.position = newPos;
+        
+
+        //    acumulatedPush = Vector2.zero;
+        //}
+    }
+
+
+
     private void Start()
     {
         GetAndSetAI();
@@ -60,6 +87,15 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
             //nose como hacerlo la verdad... uwu
         }
         //hacer que los parametros dentro de la IA coincidan con los que se especifican acá.
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (gizmos)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(transform.position, data.radious * data.separationRangeInRadious);
+        }
     }
 
     //public float pipelineWaitTime = 5f;
