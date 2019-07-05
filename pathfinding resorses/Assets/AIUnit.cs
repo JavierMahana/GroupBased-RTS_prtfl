@@ -6,7 +6,7 @@ using Sirenix.OdinInspector;
 using Pathfinding;
 
 
-public class AIUnit : MonoBehaviour
+public class AIUnit : SerializedMonoBehaviour
 {
     public bool gizmos;
     private bool started = false;
@@ -16,12 +16,61 @@ public class AIUnit : MonoBehaviour
     private AIAgent[] orderedChildren;
     private Vector2[] formationSlots;
 
+    //cuando se aruegue el timer
+    //el buscar la unidad más sercana de una unidad, esta busqueda genera una actualización en las dos unidades.
+    //eso se hace mediante el paramtro set. Ahí se reiniciaria el contador tambien.
+    public AIUnit ClosestUnit
+    {
+        get
+        {
+            AIUnit[] allUnits = FindObjectsOfType<AIUnit>();
+            Vector2 pos = transform.position;
+            AIUnit closestUnit = null;
+            float closestsqrDist = float.MaxValue;
+            for (int i = 0; i < allUnits.Length; i++)
+            {
+                AIUnit current = allUnits[i];
+                if (current == this)
+                    continue;
+                float currentSqrDist = Vector2Utilities.SqrDistance(pos, (Vector2)current.transform.position);
+                if (currentSqrDist < closestsqrDist)
+                {
+                    closestsqrDist = currentSqrDist;
+                    closestUnit = current;
+                }
+            }
+            return closestUnit;
+        }
+    }
+
     public AIUnitData data;
 
+    #region macro behaviour
+    public IMacroBehaviour temporalMacro;
+    [HideInInspector]
+    public IMacroBehaviour ActiveMacro {
+        get
+        {
+            if (mbTimer >= MB_UPDATE_TIME || activeMacro == null)
+            {
+                activeMacro = GetUpdatedMacroBehaviour();
+                mbTimer = 0;
+            }
+                
+
+            return activeMacro;
+        }
+    }
+    private IMacroBehaviour activeMacro;
+    public float MB_UPDATE_TIME = 5F;//hacer private constante luego de probar un tiempo bueno
+    private float mbTimer = 0;
+    #endregion
+
+    [HideInInspector]
     public IAstarAI movementAI;
     public bool Moving
     {
-        get { return movementAI.velocity.sqrMagnitude > float.Epsilon; }
+        get { return movementAI.velocity.sqrMagnitude > 0.0001; }
     }
     
     public Vector2 GetCohesionPosition(AIAgent requester)
@@ -33,6 +82,10 @@ public class AIUnit : MonoBehaviour
         int index = Array.IndexOf(orderedChildren, requester);
         return (Vector2)transform.position + formationSlots[index] - new Vector2(0.5f, 0.5f);
     }
+    public IMacroBehaviour GetUpdatedMacroBehaviour()
+    {
+        return temporalMacro;
+    }
 
     public void Start()
     {
@@ -40,7 +93,11 @@ public class AIUnit : MonoBehaviour
         movementAI = GetComponent<IAstarAI>();
         UpdateFormationAndChildren();
     }
-
+    private void Update
+        ()
+    {
+        //Debug.Log($"unit velocity = {movementAI.velocity.magnitude} | {movementAI.velocity}");
+    }
     public void UpdateFormationAndChildren()
     {
         orderedChildren = new AIAgent[children.Count];

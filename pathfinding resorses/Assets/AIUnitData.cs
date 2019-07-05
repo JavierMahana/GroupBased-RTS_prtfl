@@ -10,7 +10,7 @@ public class AIUnitData : ScriptableObject
     public float radious = 0.5f;
 
     public float closeUpBehaviourArea = 2f;
-    public float closeUpBehaviourMaxIntensityArea = 0.1f;
+    public float closeUpBehaviourMaxIntensityArea = 0f;
 }
 
 public enum UnitType

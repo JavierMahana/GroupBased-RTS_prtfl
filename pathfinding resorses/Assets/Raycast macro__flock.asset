@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c777e05da6ba6424b963ba15cb7c7a35, type: 3}
+  m_Name: Raycast macro__flock
+  m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects:
+    - {fileID: 11400000, guid: cdbeaa874a0d3c842b9b59aa1d316fcb, type: 2}
+    - {fileID: 11400000, guid: 22b9ce608bdc5834eb0b61177f90dde9, type: 2}
+    - {fileID: 11400000, guid: c0dace98f976ac447b7e435bd9a753af, type: 2}
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: defaultBS
+      Entry: 10
+      Data: 0
+    - Name: interferenceBS
+      Entry: 10
+      Data: 1
+    - Name: idleBS
+      Entry: 10
+      Data: 2
+  raycastMask:
+    serializedVersion: 2
+    m_Bits: 512

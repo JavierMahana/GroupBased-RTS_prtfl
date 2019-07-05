@@ -15,8 +15,13 @@ MonoBehaviour:
   radious: 0.15
   shape: 1
   maxSpeed: 1.2
-  wieghtMultiplier: 0.806
+  aviodanceWieghtMultiplier: 0.7
+  aviodanceMaxRange: 0.7
+  aviodanceMaxInfluenceRadious: 0.1
+  separationWieghtMultiplier: 0.75
+  separationIgnoreBiggerAngles: 90
+  separationIgnoreSmallerAngles: 0
   separationRangeInRadious: 2.15
   pushRangeInRadious: 2
   slowDownStartRadious: 0.5
-  stopRadious: 0.1
+  stopRadious: 0.05
