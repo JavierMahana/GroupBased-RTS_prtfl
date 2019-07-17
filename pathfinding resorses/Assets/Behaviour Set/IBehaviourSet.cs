@@ -4,6 +4,6 @@ using UnityEngine;
 
 public interface IBehaviourSet
 {
-    Vector2 CalculateDesiredPosition(AIAgent requester);
+    Vector2 CalculateDesiredPosition(AIAgent requester, float deltaTime);
     
 }

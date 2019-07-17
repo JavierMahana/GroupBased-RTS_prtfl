@@ -8,12 +8,84 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
 {
     public bool debug;
     public bool gizmos;
-
+    //private bool started = false;
     public bool test;
+    //hacer un parametro de posicion, el cual adquiera la posicion solo una vez por frame.
 
     public AIUnit parent;
+
+
     
-    public IEntity target = null;//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+    public bool Stuck
+    {
+        get
+        {
+            if (stuck)
+            {
+                float distToStuckDest = Vector2Utilities.SqrDistance(transform.position, stuckDestination);
+                if (distToStuckDest <= data.stuckSqrDistanceMargin)
+                    stuck = false;
+            }
+
+            else
+            {
+                if (MovementDelta < data.stuckMovmentDeltaTreshold)
+                {
+                    stuck = true;
+                    SetStuckDestination();
+                }
+            }
+
+            return stuck;
+        }
+    }
+    private bool stuck;
+    private float MovementDelta
+    {
+        get
+        {
+            if (movementDeltaTimer >= data.movementDeltaUpdateTime)
+            {
+                movementDelta = Vector2Utilities.SqrDistance(comparationPosition, transform.position);
+                movementDeltaTimer = 0;
+                comparationPosition = transform.position;
+            }
+
+            return movementDelta;
+        }
+    }
+    private float movementDelta = float.MaxValue;
+    private float movementDeltaTimer = 0;
+    private Vector2 comparationPosition =  Vector2.positiveInfinity; //set on "MovementDelta"
+    public Vector2 stuckDestination = Vector2.positiveInfinity;
+
+    public bool Acting
+    {
+        get { return data.actionBehaviour == ActiveBehaviourSet; }
+    }
+    public IEntity Target
+    {
+        get
+        {
+            List<IEntity> options = parent.PosibleTargets;
+            if (options == null) return null;
+
+            Vector2 position = transform.position;
+            IEntity returnEntity = options[0];
+            float closestEntitySqrDist = Vector2Utilities.SqrDistance(position, returnEntity.GameObject.transform.position);
+            for (int i = 1; i < options.Count; i++)
+            {
+                IEntity currEntity = options[i];
+                float currSqrDist = Vector2Utilities.SqrDistance(position, currEntity.GameObject.transform.position);
+                if(currSqrDist < closestEntitySqrDist)
+                {
+                    returnEntity = currEntity;
+                    closestEntitySqrDist = currSqrDist;
+                }
+            }
+            return returnEntity;
+        }
+    }
     public IAstarAI AI { get; private set; }
     public float timeToRepath = 1;
     [HideInInspector]
@@ -41,44 +113,28 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
         get { return parent.ActiveMacro.GetDesiredDestination(this); }
     }
 
-
-    //agruegar timer :v
-    public AIAgent[] ObstaclesToEvade
+    //public Vector2 GeneralVelocity - Velocidad de la que toma referencia las animaciónes
+    public Vector2 Velocity
     {
         get
         {
-            List<AIAgent> posibleObstacles = parent.ClosestUnit.children;
-
-            AIAgent closestSiblin = null;
-            float closestSiblinSqrDistance = float.MaxValue;
-
-            AIAgent secondClosestSiblin = null;
-            float secondClosestSiblinSqrDistance = float.MaxValue;
-            for (int i = 0; i < posibleObstacles.Count; i++)
-            {
-                AIAgent tempAgent = posibleObstacles[i];
-
-                if (tempAgent == this || tempAgent == target)
-                    continue;
-
-                float tempSqrDistance = Vector2Utilities.SqrDistance(transform.position, tempAgent.transform.position);
-                if (tempSqrDistance < closestSiblinSqrDistance)
-                {
-                    secondClosestSiblin = closestSiblin;
-                    secondClosestSiblinSqrDistance = closestSiblinSqrDistance;
-
-                    closestSiblin = tempAgent;
-                    closestSiblinSqrDistance = tempSqrDistance;
-                }
-                else if (tempSqrDistance < secondClosestSiblinSqrDistance)
-                {
-                    secondClosestSiblin = closestSiblin;
-                    secondClosestSiblinSqrDistance = closestSiblinSqrDistance;
-                }
-            }
-            return new AIAgent[2] { closestSiblin, secondClosestSiblin };
+            return lastDelta > 0.000001f  ? (prevPosition1 - prevPosition2) / lastDelta : Vector2.zero; ;
         }
     }
+    private Vector2 prevPosition1, prevPosition2;
+    private float lastDelta;
+    private int prevFrame;
+
+    //agruegar timer y implementar la fncionalidad al bh de avoidance. :v
+    //public AIAgent ObstacleToEvade
+    //{
+    //    get
+    //    {
+    //        SteeringBehaviour.GetClosestAgent(this, transform.position, parent.ClosestUnit.children)
+    //    }
+    //}
+    public int ciclesToRecalculateObstacle = 8;
+    private int obstacleCicles;
 
     public AIAgentData data;
     
@@ -87,7 +143,7 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
     {
         get
         {
-            if (bsTimer >= BS_UPDATE_TIME || activeBehaviourSet == null)
+            if (bsTimer >= data.BS_UPDATE_TIME || activeBehaviourSet == null)
             {
                 activeBehaviourSet = parent.ActiveMacro.GetBehaviourSet(this);
                 bsTimer = 0;
@@ -98,7 +154,10 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
         }
     }
     private IBehaviourSet activeBehaviourSet;
-    public float BS_UPDATE_TIME = 0.2F; //hacer private constante luego de probar un tiempo bueno
+    public Team Team { get { return data.team; } }
+
+
+    
     private float bsTimer = 0;
 
     //private Vector2 acumulatedPush;
@@ -112,15 +171,37 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
 
 
     public Rigidbody2D body;
+
+    private void StartUpVariables()
+    {
+        comparationPosition = transform.position;
+        movementDelta = float.MaxValue;
+    }
+    private void SetStuckDestination()
+    {
+        Vector2 position = transform.position;
+        Vector2 dir = (Destination - position).normalized;
+        int rndm = Random.Range(0, 1);
+        Vector2 perpendicular = rndm == 0 ? Vector2.Perpendicular(dir) : -Vector2.Perpendicular(dir);
+
+        Vector2 temp = position + perpendicular * data.stuckDesinationOffset;
+        RaycastHit2D hit = Physics2D.Linecast(position, temp, 1 << 9);// obstacle layer_____________________________hard coded
+        if (hit.collider != null)
+            stuckDestination = position - perpendicular * data.stuckDesinationOffset;
+        else
+            stuckDestination = temp;
+    }
     private void Update()
     {
         if (test)
         {
             if(body == null)
             {
-                transform.position = ActiveBehaviourSet.CalculateDesiredPosition(this);
-                bsTimer += Time.deltaTime;
-                repathTimer += Time.time;
+                float delta = Time.deltaTime;
+                transform.position = ActiveBehaviourSet.CalculateDesiredPosition(this, delta);
+
+                UpdateTimers(delta);
+                UpdateVelocityParams(delta);
             }
         }
 
@@ -129,30 +210,40 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
     {
         if (body != null)
         {
-            body.MovePosition(ActiveBehaviourSet.CalculateDesiredPosition(this));
-            //body.position = (ActiveBehaviourSet.CalculateDesiredPosition(this));
-            bsTimer += Time.deltaTime;
-            repathTimer += Time.deltaTime;
+            float delta = Time.fixedDeltaTime;
+            body.MovePosition(ActiveBehaviourSet.CalculateDesiredPosition(this, delta));
+            
+            UpdateTimers(delta);
+            UpdateVelocityParams(delta);
+
+            if (debug) Debug.Log($"Stuck: {Stuck.ToString()}|Acting: {Acting.ToString()}"); //Debug.Log(Velocity.ToString());
         }
     }
-    private void LateUpdate()
+    private void UpdateVelocityParams(float deltaTime)
     {
-        //if (test)
-        //{
-        //    Vector2 newPos = (Vector2)transform.position + acumulatedPush;
-        //    transform.position = newPos;
-        
+        lastDelta = deltaTime;
 
-        //    acumulatedPush = Vector2.zero;
-        //}
+        int currentFrame = Time.frameCount;
+
+        if (currentFrame != prevFrame) prevPosition2 = prevPosition1;
+        prevPosition1 = transform.position;
+        prevFrame = currentFrame;
     }
-
-
-
+    private void UpdateTimers(float deltaTime)
+    {
+        bsTimer += deltaTime;
+        repathTimer += deltaTime;
+        obstacleCicles++;
+        movementDeltaTimer += deltaTime;
+    }
     private void Start()
     {
+        //started = true;
         body = GetComponent<Rigidbody2D>();
         GetAndSetAI();
+        StartUpVariables();
+
+        prevPosition1 = prevPosition2 = transform.position;
     }
     private void GetAndSetAI()
     {
@@ -172,50 +263,25 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
 
     private void OnDrawGizmos()
     {
+        //if (started)
+        //{
+
+        //    if (Acting)
+        //    {
+        //        Gizmos.color = Color.cyan;
+        //        Gizmos.DrawSphere(transform.position, data.radious);
+        //    }
+        //    else if (Stuck)
+        //    {
+
+        //        Gizmos.color = Color.magenta;
+        //        Gizmos.DrawSphere(transform.position, data.radious);
+        //    }
+        //}
         if (gizmos)
         {
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(transform.position, data.radious * data.separationRangeInRadious);
         }
     }
-
-    //public float pipelineWaitTime = 5f;
-    //private float passedTime = 0;
-
-
-    //private IBehaviourSet currentBS;
-    //private Rigidbody body;
-    //private void Start()
-    //{
-    //    currentBS = GetInitialBS();
-    //    body = GetComponent<Rigidbody>();
-    //}
-    //private void Update()
-    //{
-    //    passedTime += Time.deltaTime;
-
-    //    if (pipelineWaitTime <= passedTime)
-    //    {
-    //        UpdateBehaviourSet();
-    //        passedTime = 0;
-    //    }
-    //}
-    //private void FixedUpdate()
-    //{
-    //    if (currentBS != null && body != null)
-    //    {
-    //        Vector3 desiredPosition = currentBS.GetDesiredPosition(this);
-    //        body.MovePosition(desiredPosition);
-    //    }
-    //}
-
-    //public IBehaviourSet UpdateBehaviourSet()
-    //{
-    //    throw new System.NotImplementedException();
-    //}
-
-    //public IBehaviourSet GetInitialBS()
-    //{
-    //    throw new System.NotImplementedException();
-    //}
 }

@@ -4,6 +4,19 @@ using UnityEngine;
 
 public static class Vector2Utilities 
 {
+    public static Vector2 VectorPerpendicularToDesired(Vector2 desiredNormalized, Vector2 referenceVectorNormalized)
+    {
+        float angle = Vector2.SignedAngle(desiredNormalized, referenceVectorNormalized);
+        if (angle > 0)
+        {
+            return -Vector2.Perpendicular(desiredNormalized);
+        }
+        else
+        {
+            return Vector2.Perpendicular(desiredNormalized);
+        }
+    }
+
     public static float GetDistanceOfSquareEdgeAndCenterFromDirection(float squareRadious, Vector2 lineDirectionFromSquareCenter)
     {
         float xMag = Mathf.Abs(lineDirectionFromSquareCenter.x);

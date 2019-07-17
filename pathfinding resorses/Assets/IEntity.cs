@@ -12,4 +12,5 @@ public interface IEntity
     float Radious { get; }
     Shape BodyShape { get; } 
     GameObject GameObject { get; }
+    Team Team { get; }
 }

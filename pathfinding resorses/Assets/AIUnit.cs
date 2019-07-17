@@ -45,15 +45,48 @@ public class AIUnit : SerializedMonoBehaviour
 
     public AIUnitData data;
 
+    [HideInInspector]
+    public List<IEntity> PosibleTargets
+    {
+        get
+        {
+            return posibleTargets;
+        }
+        private set
+        {
+            posibleTargets = value;
+        }
+    }
+    private List<IEntity> posibleTargets = null;
+
+    [HideInInspector]
+    public Team Team {
+        get
+        {
+            if (unitTeam != null)
+                return unitTeam;
+            else
+            {
+                unitTeam = children[0].Team;
+                return unitTeam;
+            }
+                
+        }
+    }
+    private Team unitTeam;
+
     #region macro behaviour
-    public IMacroBehaviour temporalMacro;
+    public IMacroBehaviour independentMacro;
+    public IMacroBehaviour dependentMacro;
     [HideInInspector]
     public IMacroBehaviour ActiveMacro {
         get
         {
-            if (mbTimer >= MB_UPDATE_TIME || activeMacro == null)
+            if (mbTimer >= data.MB_UPDATE_TIME || activeMacro == null)
             {
-                activeMacro = GetUpdatedMacroBehaviour();
+                IMacroBehaviour temp = UpdateMacroBehaviour();
+                if(temp != activeMacro) 
+                activeMacro = temp;
                 mbTimer = 0;
             }
                 
@@ -62,7 +95,6 @@ public class AIUnit : SerializedMonoBehaviour
         }
     }
     private IMacroBehaviour activeMacro;
-    public float MB_UPDATE_TIME = 5F;//hacer private constante luego de probar un tiempo bueno
     private float mbTimer = 0;
     #endregion
 
@@ -82,9 +114,96 @@ public class AIUnit : SerializedMonoBehaviour
         int index = Array.IndexOf(orderedChildren, requester);
         return (Vector2)transform.position + formationSlots[index] - new Vector2(0.5f, 0.5f);
     }
-    public IMacroBehaviour GetUpdatedMacroBehaviour()
+    public IMacroBehaviour UpdateMacroBehaviour()
     {
-        return temporalMacro;
+        
+        if (Moving)
+        {
+            PosibleTargets = null;
+            return independentMacro;
+        }
+        
+        Vector2 position = transform.position;
+
+        List<IEntity> filteredEntities = GetFilteredEntitiesInRange(position);
+        if (filteredEntities == null || filteredEntities.Count == 0)
+        {
+            PosibleTargets = null;
+            return independentMacro;
+        }
+
+
+        List<IEntity> targets = GetPrioritizedTargets(filteredEntities, position);
+        PosibleTargets = targets;
+        return dependentMacro;
+    }
+
+    private List<IEntity> GetFilteredEntitiesInRange(Vector2 position)
+    {
+        Collider2D[] allColliders = Physics2D.OverlapCircleAll(position, data.detectionRadious, data.detectableLayers);
+        List<IEntity> allEntities = GetAllEntities(allColliders);
+        List<IEntity> filteredEntities = data.targetFilter.FilterEntities(this, allEntities);
+        return filteredEntities;
+    }
+    private List<IEntity> GetPrioritizedTargets(List<IEntity> filteredPosibleTargets, Vector2 position)
+    {
+        bool haveAgent = false;
+
+        IEntity closestEntity = null;//eventualmente esto será una estructura
+        float closestEntitySqrDist = float.MaxValue;
+        AIAgent closestAgent = null;
+        float closestAgentSqrDist = float.MaxValue;
+        foreach (IEntity entity in filteredPosibleTargets)
+        {
+            Vector2 entityPos = entity.GameObject.transform.position;
+            if (entity is AIAgent)
+            {
+                haveAgent = true;
+                float sqrDist = Vector2Utilities.SqrDistance(entityPos, position);
+                if (sqrDist < closestAgentSqrDist)
+                {
+                    closestAgent = (AIAgent)entity;
+                    closestAgentSqrDist = sqrDist;
+                }
+            }
+            else
+            {
+                if (haveAgent) continue;
+
+                float sqrDist = Vector2Utilities.SqrDistance(entityPos, position);
+                if (sqrDist < closestEntitySqrDist)
+                {
+                    closestEntity = entity;
+                    closestEntitySqrDist = sqrDist;
+                }
+            }
+        }
+
+        List<IEntity> returnTargets = new List<IEntity>();
+        if (haveAgent)
+        {
+            returnTargets = closestAgent.parent.children.ConvertAll(x => (IEntity)x);
+            return returnTargets;
+        }
+        else if (closestEntity != null)
+        {
+            returnTargets.Add(closestEntity);
+            return returnTargets;
+        }
+        else
+            return null;
+    }
+    private List<IEntity> GetAllEntities(Collider2D[] posibleEntities)
+    {
+        List<IEntity> entities = new List<IEntity>();
+        for (int i = 0; i < posibleEntities.Length; i++)
+        {
+            Collider2D curr = posibleEntities[i];
+            IEntity currEntity = curr.GetComponent<IEntity>();
+            if (currEntity == null) continue;
+            else entities.Add(currEntity);
+        }
+        return entities;
     }
 
     public void Start()
@@ -93,9 +212,9 @@ public class AIUnit : SerializedMonoBehaviour
         movementAI = GetComponent<IAstarAI>();
         UpdateFormationAndChildren();
     }
-    private void Update
-        ()
+    private void Update()
     {
+        mbTimer += Time.deltaTime;
         //Debug.Log($"unit velocity = {movementAI.velocity.magnitude} | {movementAI.velocity}");
     }
     public void UpdateFormationAndChildren()
@@ -133,25 +252,25 @@ public class AIUnit : SerializedMonoBehaviour
     }
     private void OnDrawGizmos()
     {
-        if (gizmos)
-        {
-            Gizmos.color = Color.blue;
-            if (started)
-            {
-                Gizmos.DrawWireSphere((Vector2)transform.position + (Vector2)movementAI.velocity.normalized * 0.9f, data.closeUpBehaviourArea);
-            }
-            else
-                Gizmos.DrawWireSphere((Vector2)transform.position, data.closeUpBehaviourArea);
+    //    if (gizmos)
+    //    {
+    //        Gizmos.color = Color.blue;
+    //        if (started)
+    //        {
+    //            Gizmos.DrawWireSphere((Vector2)transform.position + (Vector2)movementAI.velocity.normalized * 0.9f, data.closeUpBehaviourArea);
+    //        }
+    //        else
+    //            Gizmos.DrawWireSphere((Vector2)transform.position, data.closeUpBehaviourArea);
 
-            Gizmos.color = Color.black;
-            if (started)
-            {
-                Gizmos.DrawWireSphere((Vector2)transform.position + (Vector2)movementAI.velocity.normalized * 0.9f, data.closeUpBehaviourMaxIntensityArea);
-            }
-            else
-                Gizmos.DrawWireSphere((Vector2)transform.position, data.closeUpBehaviourMaxIntensityArea);
+    //        Gizmos.color = Color.black;
+    //        if (started)
+    //        {
+    //            Gizmos.DrawWireSphere((Vector2)transform.position + (Vector2)movementAI.velocity.normalized * 0.9f, data.closeUpBehaviourMaxIntensityArea);
+    //        }
+    //        else
+    //            Gizmos.DrawWireSphere((Vector2)transform.position, data.closeUpBehaviourMaxIntensityArea);
 
-        }
+    //    }
     }
     //public AIAgent[] Childs { get; }
     //public Vector2[] FormationOffset { get; }

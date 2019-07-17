@@ -9,10 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f9eed65bce060c489d57ca18e4fa366, type: 3}
-  m_Name: distance_based_BS
+  m_Script: {fileID: 11500000, guid: fab18f7114ebb604e89fec84a2e33a50, type: 3}
+  m_Name: Only Oposite Team Filter
   m_EditorClassIdentifier: 
-  baseBehaviour: 2
-  closeUpBehaviour: 3
-  localSeparation: 1
-  localSeparationWieght: 0.5

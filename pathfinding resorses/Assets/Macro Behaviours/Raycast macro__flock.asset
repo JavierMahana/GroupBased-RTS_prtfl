@@ -36,3 +36,4 @@ MonoBehaviour:
   raycastMask:
     serializedVersion: 2
     m_Bits: 512
+  distToDestinationToIdle: 0.7

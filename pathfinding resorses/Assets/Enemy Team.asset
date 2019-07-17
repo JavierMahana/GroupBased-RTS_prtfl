@@ -9,7 +9,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c18b516ac6063aa468e8c4ef3b2a52fc, type: 3}
-  m_Name: Park_BS
+  m_Script: {fileID: 11500000, guid: 3e5ebae354316c74e9b0c4d61f678ad2, type: 3}
+  m_Name: Enemy Team
   m_EditorClassIdentifier: 
-  baseBehaviour: 2

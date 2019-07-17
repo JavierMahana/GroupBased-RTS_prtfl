@@ -1,16 +1,20 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Sirenix.OdinInspector;
 
 [CreateAssetMenu (menuName ="AI/Unit Data")]
-public class AIUnitData : ScriptableObject
+public class AIUnitData : SerializedScriptableObject
 {
+    public float MB_UPDATE_TIME = 5f;//hacer private constante luego de probar un tiempo bueno
+
+    public IEntityFilter targetFilter;
     public FormationData formationData;
     public UnitType type;
+    public LayerMask detectableLayers;
+    public float detectionRadious = 2f;
     public float radious = 0.5f;
 
-    public float closeUpBehaviourArea = 2f;
-    public float closeUpBehaviourMaxIntensityArea = 0f;
 }
 
 public enum UnitType
