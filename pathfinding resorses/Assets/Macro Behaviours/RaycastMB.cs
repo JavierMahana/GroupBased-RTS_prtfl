@@ -12,7 +12,6 @@ public class RaycastMB : BaseRaycastMB, IMacroBehaviour
     public IBehaviourSet idleBS;
 
     public LayerMask raycastMask;
-    public float distToDestinationToIdle = 0.5f;
 
     public IBehaviourSet GetBehaviourSet(AIAgent requester)
     {
@@ -23,8 +22,10 @@ public class RaycastMB : BaseRaycastMB, IMacroBehaviour
         {
             return interferenceBS;
         }
-        else if (Vector2Utilities.SqrDistance(pos, des) <= Mathf.Pow(distToDestinationToIdle, 2) && !requester.parent.Moving)
+        else if (Vector2Utilities.SqrDistance(pos, des) <= Mathf.Pow(requester.data.idleBSRange, 2) && !requester.parent.Moving)
         {
+            
+            if (requester.debug) Debug.Log($"returning parkingBS");
             return idleBS;
         }
 

@@ -9,7 +9,6 @@ public class DependentRaycastMB : BaseRaycastMB, IMacroBehaviour
     public IBehaviourSet actingBS;
     public IBehaviourSet defaultBS;
     public IBehaviourSet interferenceBS;
-    public IBehaviourSet stuckBS;
 
     public LayerMask raycastMask;
 
@@ -24,15 +23,9 @@ public class DependentRaycastMB : BaseRaycastMB, IMacroBehaviour
         }
 
         float sqrDist = Vector2Utilities.SqrDistance(pos, des);
-        if (sqrDist <= Mathf.Pow(requester.data.rangeOfAction, 2))
+        if (sqrDist <= Mathf.Pow(requester.data.rangeOfAction + requester.data.reachDestinationMargin, 2))
         {
             return actingBS;
-        }
-            
-
-        else if (requester.Stuck)
-        {
-            return stuckBS;
         }
             
         return defaultBS;
@@ -46,7 +39,7 @@ public class DependentRaycastMB : BaseRaycastMB, IMacroBehaviour
         if (target == null)
         {
             Debug.LogError($"{requester} has no posible targets");
-            return position;
+            return requester.parent.GetCohesionPosition(requester);
         }
 
         Vector2 targetPos = target.GameObject.transform.position;

@@ -9,9 +9,7 @@ using Pathfinding;
 public class AIUnit : SerializedMonoBehaviour
 {
     public bool gizmos;
-    private bool started = false;
 
-    public FormationData formationData;
     public List<AIAgent> children = new List<AIAgent>();
     private AIAgent[] orderedChildren;
     private Vector2[] formationSlots;
@@ -45,7 +43,9 @@ public class AIUnit : SerializedMonoBehaviour
 
     public AIUnitData data;
 
+
     [HideInInspector]
+    //Actualizado cad vez que se llama a UpdateMacroBehaviour ___________> no es muy buena idea que este ahí por que el get de una propiedad cambia el behaviour de los agentes
     public List<IEntity> PosibleTargets
     {
         get
@@ -85,7 +85,8 @@ public class AIUnit : SerializedMonoBehaviour
             if (mbTimer >= data.MB_UPDATE_TIME || activeMacro == null)
             {
                 IMacroBehaviour temp = UpdateMacroBehaviour();
-                if(temp != activeMacro) 
+                if (temp != activeMacro) OnMBUpdate();
+
                 activeMacro = temp;
                 mbTimer = 0;
             }
@@ -104,7 +105,15 @@ public class AIUnit : SerializedMonoBehaviour
     {
         get { return movementAI.velocity.sqrMagnitude > 0.0001; }
     }
-    
+
+    private void OnMBUpdate()
+    {
+        //update children timers
+        foreach (AIAgent child in children)
+        {
+            child.OnMBUpdate();
+        }
+    }
     public Vector2 GetCohesionPosition(AIAgent requester)
     {
         if (Moving)
@@ -115,14 +124,14 @@ public class AIUnit : SerializedMonoBehaviour
         return (Vector2)transform.position + formationSlots[index] - new Vector2(0.5f, 0.5f);
     }
     public IMacroBehaviour UpdateMacroBehaviour()
-    {
-        
+    {       
         if (Moving)
         {
-            PosibleTargets = null;
+            PosibleTargets = null;            
             return independentMacro;
         }
-        
+
+
         Vector2 position = transform.position;
 
         List<IEntity> filteredEntities = GetFilteredEntitiesInRange(position);
@@ -132,10 +141,12 @@ public class AIUnit : SerializedMonoBehaviour
             return independentMacro;
         }
 
-
-        List<IEntity> targets = GetPrioritizedTargets(filteredEntities, position);
-        PosibleTargets = targets;
-        return dependentMacro;
+        else
+        {
+            List<IEntity> targets = GetPrioritizedTargets(filteredEntities, position);
+            PosibleTargets = targets;
+            return dependentMacro;
+        }
     }
 
     private List<IEntity> GetFilteredEntitiesInRange(Vector2 position)
@@ -208,7 +219,6 @@ public class AIUnit : SerializedMonoBehaviour
 
     public void Start()
     {
-        started = true;  
         movementAI = GetComponent<IAstarAI>();
         UpdateFormationAndChildren();
     }
@@ -217,7 +227,7 @@ public class AIUnit : SerializedMonoBehaviour
         mbTimer += Time.deltaTime;
         //Debug.Log($"unit velocity = {movementAI.velocity.magnitude} | {movementAI.velocity}");
     }
-    public void UpdateFormationAndChildren()
+    private void UpdateFormationAndChildren()
     {
         orderedChildren = new AIAgent[children.Count];
         List<AIAgent> childrenCopy = new List<AIAgent>(children);
@@ -244,7 +254,7 @@ public class AIUnit : SerializedMonoBehaviour
         }
         Debug.Log("actualizando slots");
         Vector2Int key = new Vector2Int(orderedChildren.Length, (int)data.type);
-        if (! formationData.FormationOffsetData.TryGetValue(key, out formationSlots))
+        if (! data.formationData.FormationOffsetData.TryGetValue(key, out formationSlots))
         {
             Debug.LogError("invalid pair");
         } 
@@ -272,26 +282,5 @@ public class AIUnit : SerializedMonoBehaviour
 
     //    }
     }
-    //public AIAgent[] Childs { get; }
-    //public Vector2[] FormationOffset { get; }
-
-
-
-    //public bool OnDestination { get; }
-
-    //public 
-    //public Vector2? GetChildDesiredPosition(AIAgent requester)
-    //{
-    //    int index = Array.IndexOf(Childs, requester);
-    //    if (index == -1)
-    //        return null;
-
-    //    if (OnDestination)
-    //        return (Vector2)transform.position;
-    //    else
-    //    {
-    //        Vector2 desPos = (Vector2)transform.position + FormationOffset[index];
-    //        return desPos;
-    //    }
-    //}
+    
 }

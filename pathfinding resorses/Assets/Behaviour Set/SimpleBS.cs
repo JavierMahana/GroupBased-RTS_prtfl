@@ -11,12 +11,32 @@ public class SimpleBS : BehaviourSet, IBehaviourSet
     public Vector2 CalculateDesiredPosition(AIAgent requester, float deltaTime)
     {
         Vector2 requesterPosition = GetPostion(requester);
+        Vector2 currentDesiredPosition;
 
-        Vector2 currentDesiredPosition = SteeringBehaviour.GetDesiredPosition(baseBehaviour, requesterPosition, requester, deltaTime);
+        if (useStuckBehaviour)
+        {
+            if (requester.UseStuckBehaviour(out Vector2? sbDestination))
+            {
+                
+                currentDesiredPosition = SteeringBehaviour.Arribe(requester, requesterPosition, sbDestination.Value, deltaTime, false, false);
+            }
+            else
+            {
+                currentDesiredPosition = SteeringBehaviour.GetDesiredPosition(baseBehaviour, requesterPosition, requester, deltaTime);
+            }
 
-        if(applySeparation)
+        }
+        else
+        {
+            currentDesiredPosition = SteeringBehaviour.GetDesiredPosition(baseBehaviour, requesterPosition, requester, deltaTime);
+        }
+
+
+
+        if (applySeparation)
+        {
             currentDesiredPosition = ApplySeparation(requester, requesterPosition, currentDesiredPosition, linearSeparationWeight);
-
+        }
         if (applyAvoidance)
         {
             if (!ignoreIfHeading)

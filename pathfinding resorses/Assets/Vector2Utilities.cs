@@ -37,8 +37,6 @@ public static class Vector2Utilities
             //sen --> h = r/cos(pero los angulos son distintos)
             //el angulo esta en el eje y.
             angle = Mathf.Atan2(lineDirectionFromSquareCenter.x, lineDirectionFromSquareCenter.y);
-
-            
         }
         return squareRadious / Mathf.Abs(Mathf.Cos(angle));
     }

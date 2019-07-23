@@ -17,10 +17,29 @@ public class DistanceBasedBS : BehaviourSet, IBehaviourSet
     public Vector2 CalculateDesiredPosition(AIAgent requester, float deltaTime)
     {
         Vector2 requesterPosition = GetPostion(requester);
+        Vector2 currentDesiredPosition;
 
-        Vector2 currentDesiredPosition = SteeringBehaviour.GetDesiredPosition(baseBehaviour, requesterPosition, requester, deltaTime);
-        currentDesiredPosition = Vector2.Lerp(currentDesiredPosition,
-            SteeringBehaviour.GetDesiredPosition(closeUpBehaviour, requesterPosition, requester,deltaTime), GetCloseUpWeight(requester, closeUpLinearWeight));
+        if (useStuckBehaviour)
+        {
+            if (requester.UseStuckBehaviour(out Vector2? sbDestination))
+            {
+                currentDesiredPosition = SteeringBehaviour.Arribe(requester, requesterPosition, sbDestination.Value,deltaTime, false, false);
+            }
+            else
+            {
+                currentDesiredPosition = SteeringBehaviour.GetDesiredPosition(baseBehaviour, requesterPosition, requester, deltaTime);
+                currentDesiredPosition = Vector2.Lerp(currentDesiredPosition,
+                    SteeringBehaviour.GetDesiredPosition(closeUpBehaviour, requesterPosition, requester, deltaTime), GetCloseUpWeight(requester, closeUpLinearWeight));
+            }
+
+        }
+        else
+        {
+            currentDesiredPosition = SteeringBehaviour.GetDesiredPosition(baseBehaviour, requesterPosition, requester, deltaTime);
+            currentDesiredPosition = Vector2.Lerp(currentDesiredPosition,
+                SteeringBehaviour.GetDesiredPosition(closeUpBehaviour, requesterPosition, requester, deltaTime), GetCloseUpWeight(requester, closeUpLinearWeight));
+        }
+
 
 
         if (applySeparation)

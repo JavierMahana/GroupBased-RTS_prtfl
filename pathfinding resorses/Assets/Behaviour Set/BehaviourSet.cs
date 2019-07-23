@@ -8,25 +8,38 @@ public abstract class BehaviourSet : ScriptableObject
     public bool applySeparation = true;
     [ShowIf("applySeparation")]
     public bool linearSeparationWeight = true;
+
     public bool applyAvoidance = true;
     [ShowIf("applyAvoidance")]
     public bool linearAvoidanceWeight = true;
+    [ShowIf("applyAvoidance")]
+    public bool perpendicular = true;
     [ShowIf("applyAvoidance")]
     public bool ignoreIfHeading = false;
     private bool showAngle { get { return applyAvoidance && ignoreIfHeading; } }
     [ShowIf("showAngle")]
     public int ingnoreAnglesAvoidance = 15;
 
+    public bool useStuckBehaviour = false;
+
+
     protected Vector2 ApplyAvoidance(AIAgent requester, Vector2 requesterPosition, Vector2 currentDesiredPostion, bool linearWeight)
     {
-        Vector2? avoidanceTemp = SteeringBehaviour.ObstacleAvoidance(requester, requesterPosition,
-                    (currentDesiredPostion - requesterPosition).normalized, out AIAgent avoidanceObj);
+        Vector2? avoidanceTemp;
+        AIAgent avoidanceObj;
+
+        if (perpendicular) avoidanceTemp = SteeringBehaviour.ObstacleAvoidance(requester, requesterPosition,
+                (currentDesiredPostion - requesterPosition).normalized, out avoidanceObj);
+
+        else avoidanceTemp = SteeringBehaviour.ObstacleAvoidance(requester, requesterPosition, out avoidanceObj);
+
         if (avoidanceTemp != null)
         {
             float avoidanceWeight = GetAvoidanceWeight(requester, requesterPosition, avoidanceObj.transform.position, linearWeight);
             currentDesiredPostion = Vector2.Lerp(currentDesiredPostion, avoidanceTemp.Value, avoidanceWeight * requester.data.aviodanceWieghtMultiplier);
         }
         return currentDesiredPostion;
+
     }
     /// <summary>
     /// the requester must have an target for this to work as intended
@@ -34,9 +47,17 @@ public abstract class BehaviourSet : ScriptableObject
     protected Vector2 ApplyAvoidance(AIAgent requester, Vector2 requesterPosition, Vector2 currentDesiredPostion, bool linearWeight, int anglesRangeToIgnore)
     {
         Vector2 des = requester.Destination;
+        Vector2? avoidanceTemp;
+        AIAgent avoidanceObj;
 
-        Vector2? avoidanceTemp = SteeringBehaviour.ObstacleAvoidance(requester, requesterPosition,
-                    (currentDesiredPostion - requesterPosition).normalized, out AIAgent avoidanceObj);
+
+        if (perpendicular) avoidanceTemp = SteeringBehaviour.ObstacleAvoidance(requester, requesterPosition,
+                    (currentDesiredPostion - requesterPosition).normalized, out avoidanceObj);
+
+        else avoidanceTemp = SteeringBehaviour.ObstacleAvoidance(requester, requesterPosition, out avoidanceObj);
+
+
+
         if (UseObstacleAvoidance(requester, avoidanceTemp, avoidanceObj, des, anglesRangeToIgnore))
         {
             float avoidanceWeight = GetAvoidanceWeight(requester, requesterPosition, avoidanceObj.transform.position, linearWeight);

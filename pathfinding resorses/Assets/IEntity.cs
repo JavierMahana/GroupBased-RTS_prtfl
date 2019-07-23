@@ -13,4 +13,5 @@ public interface IEntity
     Shape BodyShape { get; } 
     GameObject GameObject { get; }
     Team Team { get; }
+    void RecieveDamage(int attackStrenght);
 }

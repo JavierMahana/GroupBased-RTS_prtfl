@@ -12,14 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f9eed65bce060c489d57ca18e4fa366, type: 3}
   m_Name: Floock_BS
   m_EditorClassIdentifier: 
-  baseBehaviour: 1
-  closeUpBehaviour: 2
   applySeparation: 1
   linearSeparationWeight: 1
   applyAvoidance: 1
   linearAvoidanceWeight: 1
+  perpendicular: 1
   ignoreIfHeading: 0
   ingnoreAnglesAvoidance: 15
+  useStuckBehaviour: 0
+  baseBehaviour: 1
+  closeUpBehaviour: 2
   closeUpLinearWeight: 1
   closeUpBehaviourArea: 1.6
   closeUpBehaviourMaxIntensityArea: 0.4

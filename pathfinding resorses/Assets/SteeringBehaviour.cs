@@ -82,6 +82,32 @@ public static class SteeringBehaviour
         return position + perpendicular * requester.data.maxSpeed * Time.deltaTime;
 
     }
+    public static Vector2? ObstacleAvoidance(AIAgent requester, Vector2 position, out AIAgent avoidanceObjective)
+    {
+        if (requester.parent.ClosestUnit == null)
+        {
+            avoidanceObjective = null;
+            return null;
+        }
+
+        float objectiveSqrDistance;
+        if (requester.Target is AIAgent)
+        {
+            if (!GetClosestAgent(requester, position, requester.parent.ClosestUnit.children,
+                out avoidanceObjective, out objectiveSqrDistance, (AIAgent)requester.Target))
+                return null;
+        }
+        else
+        {
+            if (!GetClosestAgent(requester, position, requester.parent.ClosestUnit.children,
+                out avoidanceObjective, out objectiveSqrDistance))
+                return null;
+        }
+        Vector2 objectiveDirection = ((Vector2)avoidanceObjective.transform.position - position).normalized;
+
+        return position - objectiveDirection * requester.data.maxSpeed * Time.deltaTime;
+
+    }
 
     private static Vector2 FollowPath(AIAgent requester)
     {

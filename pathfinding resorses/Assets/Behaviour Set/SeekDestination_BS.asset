@@ -18,4 +18,5 @@ MonoBehaviour:
   linearAvoidanceWeight: 1
   ignoreIfHeading: 1
   ingnoreAnglesAvoidance: 10
+  useStuckBehaviour: 1
   baseBehaviour: 3

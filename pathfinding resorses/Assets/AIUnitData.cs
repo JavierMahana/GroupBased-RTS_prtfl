@@ -7,7 +7,7 @@ using Sirenix.OdinInspector;
 public class AIUnitData : SerializedScriptableObject
 {
     public float MB_UPDATE_TIME = 5f;//hacer private constante luego de probar un tiempo bueno
-
+    
     public IEntityFilter targetFilter;
     public FormationData formationData;
     public UnitType type;

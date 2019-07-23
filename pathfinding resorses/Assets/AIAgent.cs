@@ -3,63 +3,91 @@ using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding;
 using Sirenix.OdinInspector;
+using System;
 
+[RequireComponent(typeof(Health))]
 public class AIAgent : SerializedMonoBehaviour, IEntity
 {
+
+    private Health health;
+
+    [HideInInspector]
+    public Action<IEntity> ActionBegan = delegate { };
     public bool debug;
     public bool gizmos;
-    //private bool started = false;
-    public bool test;
     //hacer un parametro de posicion, el cual adquiera la posicion solo una vez por frame.
-
     public AIUnit parent;
 
 
-    
-    public bool Stuck
+    private bool shouldRecalculateNow = false;
+    private bool dontRecalculate = false;
+    private EntityAction entityAction;
+
+    private bool BSJustChanged
     {
         get
         {
-            if (stuck)
-            {
-                float distToStuckDest = Vector2Utilities.SqrDistance(transform.position, stuckDestination);
-                if (distToStuckDest <= data.stuckSqrDistanceMargin)
-                    stuck = false;
-            }
+            return bsChangeTimer < data.timeBSJustChangedIsTrue;
+        }
+    }
+    private float bsChangeTimer = 0;
 
+    private bool currentlyUsingSB = false;
+    public Vector2 currentStuckDestination;
+
+    private bool InActionRangeToDestination
+    {
+        get
+        {
+            float distanceToDestination = Vector2.Distance(transform.position, Destination);
+            if (distanceToDestination < (data.reachDestinationMargin + data.rangeOfAction))
+            {
+                return true;
+            }
             else
             {
-                if (MovementDelta < data.stuckMovmentDeltaTreshold)
-                {
-                    stuck = true;
-                    SetStuckDestination();
-                }
+                return false;
             }
-
-            return stuck;
         }
     }
-    private bool stuck;
-    private float MovementDelta
+    private bool Moving
     {
         get
         {
-            if (movementDeltaTimer >= data.movementDeltaUpdateTime)
+            if (GetMovementDeltaAndUpdateIfNeeded() < data.lowerMovementDeltaIsStoped)
             {
-                movementDelta = Vector2Utilities.SqrDistance(comparationPosition, transform.position);
-                movementDeltaTimer = 0;
-                comparationPosition = transform.position;
+                return false;
+            }
+            else
+            {
+                return true;
             }
 
-            return movementDelta;
         }
     }
+
+    private bool sbConsistency;
+    public Rigidbody2D body;
+
     private float movementDelta = float.MaxValue;
     private float movementDeltaTimer = 0;
-    private Vector2 comparationPosition =  Vector2.positiveInfinity; //set on "MovementDelta"
-    public Vector2 stuckDestination = Vector2.positiveInfinity;
+    private Vector2 comparationPosition = Vector2.positiveInfinity; //set and used on "MovementDelta"
 
-    public bool Acting
+    private void OnActionFinished()
+    {
+        acting = false;
+        shouldRecalculateNow = true;
+        dontRecalculate = false;
+    }
+    private void SendActionStartEvents()
+    {
+        acting = true;
+        dontRecalculate = true;
+        ActionBegan(Target);
+    }
+
+    private bool acting = false;    
+    private bool OnActState
     {
         get { return data.actionBehaviour == ActiveBehaviourSet; }
     }
@@ -112,7 +140,7 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
     {
         get { return parent.ActiveMacro.GetDesiredDestination(this); }
     }
-
+    
     //public Vector2 GeneralVelocity - Velocidad de la que toma referencia las animaciónes
     public Vector2 Velocity
     {
@@ -124,6 +152,13 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
     private Vector2 prevPosition1, prevPosition2;
     private float lastDelta;
     private int prevFrame;
+
+
+
+
+    public Team Team { get { return data.team; } }
+    private float bsTimer = 0;
+
 
     //agruegar timer y implementar la fncionalidad al bh de avoidance. :v
     //public AIAgent ObstacleToEvade
@@ -137,72 +172,135 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
     private int obstacleCicles;
 
     public AIAgentData data;
-    
+    private void ResetMovementDelta()
+    {
+        movementDelta = float.MaxValue;
+        movementDeltaTimer = 0;
+        comparationPosition = transform.position;
+    }
+    private float GetMovementDeltaAndUpdateIfNeeded()
+    {
+        if (movementDeltaTimer >= data.movementDeltaUpdateTime)
+        {
+            movementDelta = Vector2.Distance(comparationPosition, transform.position);
+            movementDeltaTimer = 0;
+            comparationPosition = transform.position;
+        }
 
+        return movementDelta;
+
+    }
+    public void OnMBUpdate()
+    {
+        bsChangeTimer = 0;
+    }
     public IBehaviourSet ActiveBehaviourSet
     {
         get
         {
-            if (bsTimer >= data.BS_UPDATE_TIME || activeBehaviourSet == null)
+            if (!dontRecalculate && (bsTimer >= data.BS_UPDATE_TIME || activeBehaviourSet == null || shouldRecalculateNow))
             {
                 activeBehaviourSet = parent.ActiveMacro.GetBehaviourSet(this);
                 bsTimer = 0;
+                shouldRecalculateNow = false;
             }
-                
-
             return activeBehaviourSet;
         }
     }
     private IBehaviourSet activeBehaviourSet;
-    public Team Team { get { return data.team; } }
-
-
     
-    private float bsTimer = 0;
-
-    //private Vector2 acumulatedPush;
-    //public void Push(Vector2 directionNormalized, float force)
-    //{
-    //    if (acumulatedPush.sqrMagnitude < force * force)
-    //    {
-    //        acumulatedPush = directionNormalized * force;
-    //    }
-    //}
+    public bool UseStuckBehaviour(out Vector2? stuckDestination)
+    {
+        if (currentlyUsingSB)
+        {
+            if (!Moving)
+            {
+                stuckDestination = currentStuckDestination = CalculateStuckDestination(data.obstacleLayerMask);
+            }
 
 
-    public Rigidbody2D body;
-
+            float sqrDistToStuckDest = Vector2Utilities.SqrDistance((Vector2)transform.position, currentStuckDestination);
+            if (sqrDistToStuckDest < Mathf.Pow(data.reachDestinationMargin, 2) || InActionRangeToDestination)
+            {
+                stuckDestination = null;
+                currentlyUsingSB = false;
+                return false;
+            }
+            else
+            {
+                stuckDestination = currentStuckDestination;
+                return true;
+            }
+            //debo revisar si es que se vuelva a atrapar luego de ya estar atrapado. 
+        }
+        else
+        {
+            if (!Moving && !InActionRangeToDestination && !BSJustChanged)
+            {
+                stuckDestination = currentStuckDestination = CalculateStuckDestination(data.obstacleLayerMask);
+                currentlyUsingSB = true;
+                ResetMovementDelta();
+                return true;
+            }
+            else
+            {
+                stuckDestination = null;
+                currentlyUsingSB = false;
+                return false;
+            }
+        }
+    }
     private void StartUpVariables()
     {
-        comparationPosition = transform.position;
-        movementDelta = float.MaxValue;
+        ResetMovementDelta();
+        
+        sbConsistency = UnityEngine.Random.Range(0, 2) == 0 ? true : false;
     }
-    private void SetStuckDestination()
+
+ 
+    private Vector2 CalculateStuckDestination(int obstacleLayerMask)
     {
         Vector2 position = transform.position;
         Vector2 dir = (Destination - position).normalized;
-        int rndm = Random.Range(0, 1);
-        Vector2 perpendicular = rndm == 0 ? Vector2.Perpendicular(dir) : -Vector2.Perpendicular(dir);
 
-        Vector2 temp = position + perpendicular * data.stuckDesinationOffset;
-        RaycastHit2D hit = Physics2D.Linecast(position, temp, 1 << 9);// obstacle layer_____________________________hard coded
+        ////int rndm = Random.Range(0, 2);
+        //Vector2 perpendicular = rndm == 0 ? Vector2.Perpendicular(dir) : -Vector2.Perpendicular(dir);
+        Vector2 perpendicular = sbConsistency ? Vector2.Perpendicular(dir) : -Vector2.Perpendicular(dir);
+
+        Vector2 tempStuckDest = position + perpendicular * data.stuckDesinationOffset;
+        RaycastHit2D hit = Physics2D.Linecast(position, tempStuckDest, obstacleLayerMask); //este linecast no considera el area del agente.
         if (hit.collider != null)
-            stuckDestination = position - perpendicular * data.stuckDesinationOffset;
-        else
-            stuckDestination = temp;
+        {
+            sbConsistency = !sbConsistency;
+
+            tempStuckDest = position - perpendicular * data.stuckDesinationOffset;
+            #region checking for indesirable cases            
+            hit = Physics2D.Linecast(position, tempStuckDest, obstacleLayerMask);
+            if (hit.collider != null)
+            {
+                Debug.LogWarning("modifique el valor de # data.stuckDesinationOffset # ya que su valor parece ser muy alto. Stuck destination: Destination");
+                return Destination;
+            }
+            #endregion
+            else return tempStuckDest;
+        }
+        else return tempStuckDest;
     }
     private void Update()
     {
-        if (test)
+        if (body == null)
         {
-            if(body == null)
-            {
-                float delta = Time.deltaTime;
-                transform.position = ActiveBehaviourSet.CalculateDesiredPosition(this, delta);
+            float delta = Time.deltaTime;
+            transform.position = ActiveBehaviourSet.CalculateDesiredPosition(this, delta);
 
-                UpdateTimers(delta);
-                UpdateVelocityParams(delta);
-            }
+            UpdateTimers(delta);
+            UpdateVelocityParams(delta);
+        }
+
+
+        if (OnActState && !acting)
+        {
+            SendActionStartEvents();
         }
 
     }
@@ -216,9 +314,12 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
             UpdateTimers(delta);
             UpdateVelocityParams(delta);
 
-            if (debug) Debug.Log($"Stuck: {Stuck.ToString()}|Acting: {Acting.ToString()}"); //Debug.Log(Velocity.ToString());
+
+            //if (debug) Debug.Log($"Moving: {Moving.ToString()}|Acting: {Acting.ToString()} |In SB: {currentlyUsingSB}|MB just changed: {BSJustChanged}");
         }
     }
+    
+
     private void UpdateVelocityParams(float deltaTime)
     {
         lastDelta = deltaTime;
@@ -231,14 +332,19 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
     }
     private void UpdateTimers(float deltaTime)
     {
+        bsChangeTimer += deltaTime;
         bsTimer += deltaTime;
         repathTimer += deltaTime;
         obstacleCicles++;
         movementDeltaTimer += deltaTime;
     }
-    private void Start()
+    private void Awake()
     {
         //started = true;
+        entityAction = GetComponent<EntityAction>();
+        if (entityAction == null) Debug.LogError("Entities must have an action");
+
+        health = GetComponent<Health>();
         body = GetComponent<Rigidbody2D>();
         GetAndSetAI();
         StartUpVariables();
@@ -260,7 +366,6 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
         }
         //hacer que los parametros dentro de la IA coincidan con los que se especifican acá.
     }
-
     private void OnDrawGizmos()
     {
         //if (started)
@@ -283,5 +388,19 @@ public class AIAgent : SerializedMonoBehaviour, IEntity
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(transform.position, data.radious * data.separationRangeInRadious);
         }
+    }
+    
+    private void OnEnable()
+    {
+        entityAction.ActionEnded += OnActionFinished;
+    }
+    private void OnDisable()
+    {
+        entityAction.ActionEnded -= OnActionFinished;
+    }
+
+    public void RecieveDamage(int attackStrenght)
+    {
+        health.RecieveDamage(attackStrenght);
     }
 }

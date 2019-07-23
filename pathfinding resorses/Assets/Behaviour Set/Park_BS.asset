@@ -12,10 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d819d3227d6bf0b4498198cca3f35bab, type: 3}
   m_Name: Park_BS
   m_EditorClassIdentifier: 
-  applySeparation: 1
-  linearSeparationWeight: 1
+  applySeparation: 0
+  linearSeparationWeight: 0
   applyAvoidance: 1
-  linearAvoidanceWeight: 1
+  linearAvoidanceWeight: 0
+  perpendicular: 0
   ignoreIfHeading: 0
   ingnoreAnglesAvoidance: 15
+  useStuckBehaviour: 0
   baseBehaviour: 1

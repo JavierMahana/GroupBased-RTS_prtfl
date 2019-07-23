@@ -25,15 +25,21 @@ MonoBehaviour:
     - Name: actionBehaviour
       Entry: 10
       Data: 0
-  team: {fileID: 11400000, guid: e1860671882cb414e9a185c08200d666, type: 2}
+  rangeOfAction: 0
+  actionSpeed: 1
+  timeBSJustChangedIsTrue: 0.5
+  team: {fileID: 11400000, guid: 4911ae2bee2d950458882e3c30093b10, type: 2}
   radious: 0.15
   shape: 1
   maxSpeed: 1.2
-  rangeOfAction: 0.009
   BS_UPDATE_TIME: 0.08
-  movementDeltaUpdateTime: 0.7
-  stuckSqrDistanceMargin: 0.01
-  stuckMovmentDeltaTreshold: 0.01
+  reachDestinationMargin: 0.05
+  obstacleLayerMask:
+    serializedVersion: 2
+    m_Bits: 512
+  idleBSRange: 1
+  movementDeltaUpdateTime: 0.6
+  lowerMovementDeltaIsStoped: 0.02
   stuckDesinationOffset: 0.5
   aviodanceWieghtMultiplier: 0.7
   aviodanceRange: 0.7
