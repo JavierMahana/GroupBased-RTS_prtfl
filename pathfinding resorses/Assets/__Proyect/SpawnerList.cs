@@ -5,9 +5,9 @@ using UnityEngine.UI;
 using Sirenix.OdinInspector;
 using Lean.Pool; 
 
-//esto la idea es que sea triggereado por una estructura.
-//es parte del UI
-//el nombre hay que cambiarlo
+
+//esto lo que hace es spawnear como hijos suyos los botones.
+//es parte de una vista la cual es manejada por doozyUI
 public class SpawnerList : SerializedMonoBehaviour
 {
     public RectTransform rectToPlaceOptionList;
@@ -24,13 +24,6 @@ public class SpawnerList : SerializedMonoBehaviour
 
     private List<UnitDisplayButton> activeButons = new List<UnitDisplayButton>();
 
-    public void Update()
-    {
-        if (selected)
-        {
-
-        }
-    }
     [Button]
     private void HideSpawnableUnitsButtons()
     {

@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
-//botones spawneados por el "spawner list" (nombre temporal)
 public class UnitDisplayButton : MonoBehaviour
 {
     public AIUnitData unitData;

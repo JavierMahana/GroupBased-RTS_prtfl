@@ -85,7 +85,7 @@ public class AIAgent : Entity
         ActionBegan(Target);
     }
 
-    private bool acting = false;    
+    private bool acting = false;
     private bool OnActState
     {
         get { return data.actionBehaviour == ActiveBehaviourSet; }
@@ -95,7 +95,7 @@ public class AIAgent : Entity
         get
         {
             List<Entity> options = parent.posibleTargets;
-            if (options == null|| options.Count == 0) return null;
+            if (options == null || options.Count == 0) return null;
 
             Vector2 position = transform.position;
             Entity returnEntity = options[0];
@@ -104,7 +104,7 @@ public class AIAgent : Entity
             {
                 Entity currEntity = options[i];
                 float currSqrDist = Vector2Utilities.SqrDistance(position, currEntity.GameObject.transform.position);
-                if(currSqrDist < closestEntitySqrDist)
+                if (currSqrDist < closestEntitySqrDist)
                 {
                     returnEntity = currEntity;
                     closestEntitySqrDist = currSqrDist;
@@ -118,6 +118,8 @@ public class AIAgent : Entity
     [HideInInspector]
     public float repathTimer;
 
+
+    public override Health Health { get { return health; } }
     public override float Radious
     {
         get
@@ -139,13 +141,13 @@ public class AIAgent : Entity
     {
         get { return parent.ActiveMacro.GetDesiredDestination(this); }
     }
-    
+
     //public Vector2 GeneralVelocity - Velocidad de la que toma referencia las animaciónes
     public Vector2 Velocity
     {
         get
         {
-            return lastDelta > 0.000001f  ? (prevPosition1 - prevPosition2) / lastDelta : Vector2.zero; ;
+            return lastDelta > 0.000001f ? (prevPosition1 - prevPosition2) / lastDelta : Vector2.zero; ;
         }
     }
     private Vector2 prevPosition1, prevPosition2;
@@ -206,6 +208,9 @@ public class AIAgent : Entity
             return activeBehaviourSet;
         }
     }
+
+
+
     private IBehaviourSet activeBehaviourSet;
     
     public bool UseStuckBehaviour(out Vector2? stuckDestination)
@@ -409,8 +414,4 @@ public class AIAgent : Entity
         entityAction.ActionEnded -= OnActionFinished;
     }
 
-    public override void RecieveDamage(int attackStrenght)
-    {
-        health.RecieveDamage(attackStrenght);
-    }
 }

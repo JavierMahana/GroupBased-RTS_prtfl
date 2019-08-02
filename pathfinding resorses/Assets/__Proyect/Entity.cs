@@ -5,7 +5,9 @@ using Sirenix.OdinInspector;
 using System;
 
 public abstract class Entity : SerializedMonoBehaviour, IEntity
-{    
+{
+    [HideInInspector]
+    public Action<Entity> OnEntitySelection = delegate { };
     [HideInInspector]
     public Action<Entity> OnEntityDeath = delegate { };
     [HideInInspector]
@@ -15,5 +17,10 @@ public abstract class Entity : SerializedMonoBehaviour, IEntity
     public abstract Shape BodyShape { get; }
     public abstract GameObject GameObject { get; }
     public abstract Team Team { get; }
-    public abstract void RecieveDamage(int attackStrenght);
+    public abstract Health Health { get; }
+
+    public virtual void RecieveDamage(int attackStrenght)
+    {
+        Health.RecieveDamage(attackStrenght);
+    }
 }

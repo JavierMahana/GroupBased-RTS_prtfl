@@ -10,6 +10,7 @@ public enum Shape
 }
 public interface IEntity
 {
+    Health Health { get; }
     float Radious { get; }
     Shape BodyShape { get; } 
     GameObject GameObject { get; }

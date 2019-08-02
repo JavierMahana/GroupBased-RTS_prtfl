@@ -6,7 +6,7 @@ using System.Linq;
 public class UnitManager : Singleton<UnitManager>
 {
     public HashSet<AIUnit> allActiveUnits;
-
+    public UnitDataToUnit unitDictionary;
 
     //debe subscribirse a un evento estatico al crearse una unidad.
     private void OnUnitCreation(AIUnit unit)

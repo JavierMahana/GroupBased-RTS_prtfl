@@ -48,7 +48,6 @@ public class AIUnit : SerializedMonoBehaviour
 
 
     [HideInInspector]
-    //deberia ser calculado solo 1 vez por frame. Ahora lo puede hacer muchas
     private void UpdatePosibleTargets()
     {
         StopHearingFromOldPossibleTargets();
