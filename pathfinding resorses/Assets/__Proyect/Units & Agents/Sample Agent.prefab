@@ -208,12 +208,12 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes:
-    - Name: ActionBegan
+    - Name: OnEntitySelection
       Entry: 7
-      Data: 0|System.Action`1[[IEntity, Assembly-CSharp]], mscorlib
+      Data: 0|System.Action`1[[Entity, Assembly-CSharp]], mscorlib
     - Name: target
       Entry: 7
-      Data: 1|AIAgent+<>c, Assembly-CSharp
+      Data: 1|Entity+<>c, Assembly-CSharp
     - Name: 
       Entry: 8
       Data: 
@@ -222,19 +222,19 @@ MonoBehaviour:
       Data: 2|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: AIAgent+<>c, Assembly-CSharp
+      Data: Entity+<>c, Assembly-CSharp
     - Name: 
       Entry: 8
       Data: 
     - Name: methodName
       Entry: 1
-      Data: <.ctor>b__74_0
+      Data: <.ctor>b__14_0
     - Name: delegateType
       Entry: 7
       Data: 3|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: System.Action`1[[IEntity, Assembly-CSharp]], mscorlib
+      Data: System.Action`1[[Entity, Assembly-CSharp]], mscorlib
     - Name: 
       Entry: 8
       Data: 
@@ -249,7 +249,7 @@ MonoBehaviour:
       Data: 5|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: IEntity, Assembly-CSharp
+      Data: Entity, Assembly-CSharp
     - Name: 
       Entry: 8
       Data: 
@@ -262,9 +262,46 @@ MonoBehaviour:
     - Name: 
       Entry: 8
       Data: 
+    - Name: OnEntityDeath
+      Entry: 7
+      Data: 6|System.Action`1[[Entity, Assembly-CSharp]], mscorlib
+    - Name: target
+      Entry: 9
+      Data: 1
+    - Name: declaringType
+      Entry: 9
+      Data: 2
+    - Name: methodName
+      Entry: 1
+      Data: <.ctor>b__14_1
+    - Name: delegateType
+      Entry: 9
+      Data: 3
+    - Name: signature
+      Entry: 7
+      Data: 7|System.Type[], mscorlib
+    - Name: 
+      Entry: 12
+      Data: 1
+    - Name: 
+      Entry: 9
+      Data: 5
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: ActionBegan
+      Entry: 6
+      Data: 
   debug: 0
   gizmos: 0
   parent: {fileID: 0}
+  entityAction: {fileID: 0}
   currentStuckDestination: {x: 0, y: 0}
   body: {fileID: 0}
   timeToRepath: 1
@@ -283,7 +320,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29f5937a11546784ebb0d3f18f70cbbe, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  currentHealth: 0
+  data: {fileID: 11400000, guid: 11219c4ef7f6e854f88e9ae7e5f8e07c, type: 2}
 --- !u!114 &7996349968576022646
 MonoBehaviour:
   m_ObjectHideFlags: 0

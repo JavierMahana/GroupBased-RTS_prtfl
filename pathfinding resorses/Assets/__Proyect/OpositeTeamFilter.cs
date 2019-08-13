@@ -10,7 +10,7 @@ public class OpositeTeamFilter : ScriptableObject, IEntityFilter
         List<Entity> filteredEntities = new List<Entity>();
         foreach (Entity unFiltered in unfilteredEntities)
         {
-            if (unFiltered.Team != requester.Team)
+            if (unFiltered.Team != requester.team)
             {
                 filteredEntities.Add(unFiltered);
             }

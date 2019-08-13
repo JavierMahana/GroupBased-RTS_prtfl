@@ -9,15 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff1d904baa870e44c9297229f1f14972, type: 3}
-  m_Name: Unit Data To Display Button
+  m_Script: {fileID: 11500000, guid: be78ab963106f4a47bd4c01ed2318795, type: 3}
+  m_Name: PortraitDictionary
   m_EditorClassIdentifier: 
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 
     ReferencedUnityObjects:
     - {fileID: 11400000, guid: f3cdba2e351eb4540a102efa8f5a422a, type: 2}
-    - {fileID: 8745059060300045179, guid: 6876ff683745ca24ab3c872fbe2f9bf5, type: 3}
+    - {fileID: -6807835881720664423, guid: fa6bfe111d09e7340a3219c96f6a9690, type: 3}
+    - {fileID: 11400000, guid: 458239d707caa314cbd572e3b7178d22, type: 2}
+    - {fileID: 1270819689028110372, guid: fa6bfe111d09e7340a3219c96f6a9690, type: 3}
     SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
@@ -25,8 +27,8 @@ MonoBehaviour:
     SerializationNodes:
     - Name: dictionary
       Entry: 7
-      Data: 0|System.Collections.Generic.Dictionary`2[[AIUnitData, Assembly-CSharp],[UnitDisplayButton,
-        Assembly-CSharp]], mscorlib
+      Data: 0|System.Collections.Generic.Dictionary`2[[AIUnitData, Assembly-CSharp],[UnityEngine.Sprite,
+        UnityEngine.CoreModule]], mscorlib
     - Name: comparer
       Entry: 7
       Data: 1|System.Collections.Generic.ObjectEqualityComparer`1[[AIUnitData, Assembly-CSharp]],
@@ -36,7 +38,7 @@ MonoBehaviour:
       Data: 
     - Name: 
       Entry: 12
-      Data: 1
+      Data: 2
     - Name: 
       Entry: 7
       Data: 
@@ -46,6 +48,18 @@ MonoBehaviour:
     - Name: $v
       Entry: 10
       Data: 1
+    - Name: 
+      Entry: 8
+      Data: 
+    - Name: 
+      Entry: 7
+      Data: 
+    - Name: $k
+      Entry: 10
+      Data: 2
+    - Name: $v
+      Entry: 10
+      Data: 3
     - Name: 
       Entry: 8
       Data: 

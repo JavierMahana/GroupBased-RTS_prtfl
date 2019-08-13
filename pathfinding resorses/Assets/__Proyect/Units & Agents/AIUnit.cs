@@ -4,15 +4,22 @@ using UnityEngine;
 using System;
 using Sirenix.OdinInspector;
 using Pathfinding;
+using Lean.Pool;
 
-
-public class AIUnit : SerializedMonoBehaviour
+//quizas las unidades podrian heredar de una interfaz que controle el ocupar espacios en el grafico de movimiento.
+public class AIUnit : SerializedMonoBehaviour, IMWRUser
 {
+    //ahora mismo el sistema no es muy bueno, pero alv.
+    private const float CAMERA_TO_WORLD_DISTANCE = 10f;
+
+    public bool selected = false;
     public bool gizmos;
     public Team team;
 
-    public static Action<AIUnit> OnDeath = delegate { };
-    public static Action<AIUnit> OnSpawn = delegate { };
+    
+
+    public static event Action<AIUnit> OnDeath = delegate { };
+    public static event Action<AIUnit> OnSpawn = delegate { };
 
     public List<AIAgent> children = new List<AIAgent>();
     private AIAgent[] orderedChildren;
@@ -98,21 +105,6 @@ public class AIUnit : SerializedMonoBehaviour
     [HideInInspector]
     public List<Entity> posibleTargets = null;
 
-    [HideInInspector]
-    public Team Team {
-        get
-        {
-            if (unitTeam != null)
-                return unitTeam;
-            else
-            {
-                unitTeam = children[0].Team;
-                return unitTeam;
-            }
-                
-        }
-    }
-    private Team unitTeam;
 
     #region macro behaviour
     public IMacroBehaviour independentMacro;
@@ -121,7 +113,7 @@ public class AIUnit : SerializedMonoBehaviour
     public IMacroBehaviour ActiveMacro {
         get
         {
-            if (mbTimer >= data.MB_UPDATE_TIME || activeMacro == null)
+            if (mbTimer >= AIUnitData.MB_UPDATE_TIME || activeMacro == null)
             {
                 IMacroBehaviour temp = UpdateMacroBehaviour();
                 if (temp != activeMacro) OnMBUpdate();
@@ -144,6 +136,14 @@ public class AIUnit : SerializedMonoBehaviour
     {
         get { return movementAI.velocity.sqrMagnitude > 0.0001; }
     }
+
+    public GameObject GameObject { get { return gameObject; } }
+    //updated by MWRManager at "OnSpawn"
+    public Vector2Int CurrentCoordintates { get; set; }
+    private Vector2Int currentCoordinates = new Vector2Int(int.MaxValue, int.MaxValue);
+    public MovementWorldRepresentation MWR { get; set; }
+
+
 
     private void OnMBUpdate()
     {
@@ -183,6 +183,8 @@ public class AIUnit : SerializedMonoBehaviour
         children.Add(agent);
         agent.OnEntityDeath += OnChildrenDeath;
         agent.parent = this;
+
+        UpdateFormationAndChildren();
     }
     //acá se llama la muerte de una unidad
     public void OnChildrenDeath(Entity child)
@@ -192,9 +194,10 @@ public class AIUnit : SerializedMonoBehaviour
 
         if (children.Count == 0)
         {
-            OnDeath(this);
+            //OnDeath(this);
             //acá se llama a el sistema de despawneo
-            gameObject.SetActive(false);
+            LeanPool.Despawn(this);
+            //gameObject.SetActive(false);
             return;
         }
 
@@ -270,8 +273,10 @@ public class AIUnit : SerializedMonoBehaviour
         return entities;
     }
 
-    public void Start()
+    private bool safeEventInvoke = false;
+    private void Awake()
     {
+        safeEventInvoke = false;
         foreach (AIAgent child in children)
         {
             child.OnEntityDeath += OnChildrenDeath;
@@ -279,13 +284,68 @@ public class AIUnit : SerializedMonoBehaviour
         }
         movementAI = GetComponent<IAstarAI>();
         UpdateFormationAndChildren();
+
     }
 
 
 
+
+    private void LateStart()
+    {
+        safeEventInvoke = true;
+        OnSpawn(this);
+
+    }
+    private void OnEnable()
+    {
+        if (safeEventInvoke)
+        {
+            OnSpawn(this);
+        }
+            
+    }
+    private void OnDisable()
+    {
+        if (safeEventInvoke)
+        {
+            OnDeath(this);
+        }
+            
+    }
+
     private void Update()
     {
+        //run only in first update
+        if (!safeEventInvoke)
+        {
+            LateStart();
+        }
+
         mbTimer += Time.deltaTime;
+        if (selected)
+        {
+            if (Input.GetMouseButtonDown(1))
+            {
+                Vector3 point = Camera.main.ScreenToWorldPoint(new Vector3( Input.mousePosition.x, Input.mousePosition.y, CAMERA_TO_WORLD_DISTANCE));
+                Vector2Int cell = MWR.GetCell(point);                
+
+                if (MWR.MoveToCell(this, cell))
+                {
+
+                }
+                else
+                {
+                    Debug.Log("movimiento fallido");
+                }
+                
+            }            
+        }
+
+        if (MWR != null)
+        {
+            movementAI.destination = MWR.GetCellPosition(CurrentCoordintates);
+        }
+         
         //Debug.Log($"unit velocity = {movementAI.velocity.magnitude} | {movementAI.velocity}");
     }
     private void UpdateFormationAndChildren()
@@ -317,7 +377,7 @@ public class AIUnit : SerializedMonoBehaviour
         Vector2Int key = new Vector2Int(orderedChildren.Length, (int)data.maxSize);
         if (! data.formationData.FormationOffsetData.TryGetValue(key, out formationSlots))
         {
-            Debug.LogError($"invalid pair; key:{key}");
+            Debug.LogError($"invalid pair; key:{key}|at: {this}");
         } 
 
     }

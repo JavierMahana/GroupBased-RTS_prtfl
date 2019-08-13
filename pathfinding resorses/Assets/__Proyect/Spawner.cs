@@ -10,7 +10,8 @@ public class Spawner : MonoBehaviour
 {    
     public static event Action<Spawner> OnSelect  = delegate{ };
 
-    public List<AIUnitData> unitsToSpawn;
+    public UnitDataToUnit unitDictionary;
+    public List<AIUnitData> spawnUnits;
     public Direction spawnDirection;
     public float spawnOffSet = 0;
     private Vector2 spawningPosition
@@ -37,35 +38,44 @@ public class Spawner : MonoBehaviour
             return (Vector2)transform.position + (direction * (entity.Radious + spawnOffSet));
         }
     }         
-    private Team team { get { return entity.Team; } }
+    public Team team { get { return entity.Team; } }
     private Entity entity;
 
 
 
     [Button]
-    private void Select()
+    public void Select()
     {
         OnSelect(this);
     }
 
-    public AIUnit SpawnUnit(AIUnitData unitData)
+    public bool TrySpawnUnit(AIUnitData unitData, out AIUnit newUnit)
     {
-        AIUnit unitPrefab = UnitManager.Instance.unitDictionary.dictionary[unitData];
+        AIUnit unitPrefab = unitDictionary.dictionary[unitData];
         Debug.Assert(unitPrefab != null, "the key doen't have any value");
-        AIUnit spawnedUnit = LeanPool.Spawn(unitPrefab, spawningPosition, Quaternion.identity);
-        spawnedUnit.team = team;
 
-        return spawnedUnit;
+        newUnit = LeanPool.Spawn(unitPrefab, spawningPosition, Quaternion.identity);
+        newUnit.team = team;
+
+        return true;
     }
-    public AIAgent SpawnAgent(AIUnit unit)
+    public bool TrySpawnAgent(AIUnit unit, out AIAgent newAgent)
     {
         AIAgent agentPrefab = unit.data.childPrefab;
         Debug.Assert(agentPrefab != null, "unit data doesn't have a agent prefab");
 
-        AIAgent spawnedAgent = LeanPool.Spawn(agentPrefab, spawningPosition, Quaternion.identity);
-        unit.AddNewChild(spawnedAgent);
+        if (unit.children.Count >= (int)unit.data.maxSize)
+        {
+            newAgent = null;
+            return false;
+        }
+        else
+        {
+            newAgent = LeanPool.Spawn(agentPrefab, spawningPosition, Quaternion.identity);
+            unit.AddNewChild(newAgent);
 
-        return spawnedAgent;
+            return true;
+        }
     }
 
     private void Start()

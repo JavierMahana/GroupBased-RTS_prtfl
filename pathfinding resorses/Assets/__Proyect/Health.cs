@@ -11,7 +11,7 @@ public class Health : MonoBehaviour
     public Action InvokeDeath = delegate { };
 
 
-    [HideInInspector]
+    [SerializeField]
     private int currentHealth;
 
 
