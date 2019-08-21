@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8857209618867278832}
   - component: {fileID: 8857209618867278831}
   - component: {fileID: 8857209618867278830}
+  - component: {fileID: 4648484070065876711}
   m_Layer: 0
   m_Name: Manager Container
   m_TagString: Untagged
@@ -57,6 +58,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0363b4fa546e90445913262b3e7c4be0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  serializationData:
+    SerializedFormat: 2
+    SerializedBytes: 
+    ReferencedUnityObjects: []
+    SerializedBytesString: 
+    Prefab: {fileID: 0}
+    PrefabModificationsReferencedUnityObjects: []
+    PrefabModifications: []
+    SerializationNodes:
+    - Name: allActiveUnits
+      Entry: 7
+      Data: 0|System.Collections.Generic.HashSet`1[[AIUnit, Assembly-CSharp]], System.Core
+    - Name: 
+      Entry: 12
+      Data: 0
+    - Name: 
+      Entry: 13
+      Data: 
+    - Name: 
+      Entry: 8
+      Data: 
 --- !u!114 &8857209618867278830
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -70,3 +92,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pathfinder: {fileID: 0}
+--- !u!114 &4648484070065876711
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8857209618867278829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 766ea5bfd86890c4e9ca42615826b6ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  canSelect: 1
+  playerState: {fileID: 11400000, guid: 15d41a39eb78f334d8e208c500eea537, type: 2}
+  selectableMask:
+    serializedVersion: 2
+    m_Bits: 14592

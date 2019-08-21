@@ -9,13 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f42f06ff6cc543ea942180e019f0fc8d, type: 3}
-  m_Name: UIButton_DownMenu
+  m_Script: {fileID: 11500000, guid: fbac98c87abbb6648af9ad6edebb8969, type: 3}
+  m_Name: Player State Data
   m_EditorClassIdentifier: 
-  CategoryName: Down Menu
-  DatabaseType: 0
-  Names:
-  - Creation
-  - New Unit
-  - Reinforcement
-  - Sample
+  playerTeam: {fileID: 11400000, guid: 4911ae2bee2d950458882e3c30093b10, type: 2}

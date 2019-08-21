@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(RectTransform), typeof(Image), typeof(Button))]
+//estos se deben auto actualizar con las unidades que tienen vinculadas
 public class ReinforcementButton : MonoBehaviour
 {
     private Spawner currentSpawner;

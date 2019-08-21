@@ -16,7 +16,7 @@ MonoBehaviour:
   CategoryNames:
   - Custom
   - General
-  - Down Menu
+  - Selection Menu
   Categories:
   - {fileID: 11400000, guid: b334dce8cf398d54abe43e584a784dc6, type: 2}
   - {fileID: 11400000, guid: a5af5ddd6b163a94d9f3261f34d67b6c, type: 2}

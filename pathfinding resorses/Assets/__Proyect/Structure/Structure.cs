@@ -6,18 +6,27 @@ using System;
 
 //quizas las estructuras podrian heredar de una interfaz que controle el ocupar espacios en el grafico de movimiento.
 [RequireComponent(typeof(Health))]
-public class Structure : Entity, IMWRUser
+public abstract class Structure : Entity, IMWRUser, ISelectable
 {
+    public event SelectionEvent SelectionStateChanged = delegate { };
+
+    //used by the MWR
     public static event Action<Structure> OnSpawn = delegate { };
     public static event Action<Structure> OnDeath = delegate { };
     
     public StructureData data;
     public Team team;
-    public Vector2Int gridCoordinate;
-    private Health health;
 
+    private Health health;
     private bool safeEventInvoke;
-    private void Start()
+
+    
+    protected virtual void Awake()
+    {
+        safeEventInvoke = false;        
+        health = GetComponent<Health>();
+    }
+    protected virtual void Start()
     {
         StartCoroutine(CallLateUpdate());
     }
@@ -28,18 +37,19 @@ public class Structure : Entity, IMWRUser
     }
 
     private void LateStart()
-    {
-        Debug.Log("late start. Calling the functions");
+    {       
         safeEventInvoke = true;
         OnSpawn(this);
     }
-    private void OnEnable()
+    protected virtual void OnEnable()
     {
+        Health.InvokeDeath += Death;
         if (safeEventInvoke)
             OnSpawn(this);
     }
-    private void OnDisable()
+    protected virtual void OnDisable()
     {
+        Health.InvokeDeath -= Death;
         if (safeEventInvoke)
             OnDeath(this);
     }
@@ -52,12 +62,24 @@ public class Structure : Entity, IMWRUser
 
     public Vector2Int CurrentCoordintates { get; set; }
     public MovementWorldRepresentation MWR { get; set; }
+    public abstract UIMode UIMode { get; }
 
-
-
-    private void Awake()
+    private void Death()
     {
-        safeEventInvoke = false;
-        health = GetComponent<Health>();
+
+    }
+    
+    public virtual void Select(SelectionManager manager)
+    {
+        Debug.Log($"selected {this}");
+    }
+    public virtual void Deselect(SelectionManager manager)
+    {
+        Debug.Log($"deselect {this}");
+    }
+
+    public ISelectable GetSelectable()
+    {
+        return this;
     }
 }

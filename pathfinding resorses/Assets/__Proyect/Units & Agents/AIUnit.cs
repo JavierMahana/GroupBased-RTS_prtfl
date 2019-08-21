@@ -6,18 +6,16 @@ using Sirenix.OdinInspector;
 using Pathfinding;
 using Lean.Pool;
 
-//quizas las unidades podrian heredar de una interfaz que controle el ocupar espacios en el grafico de movimiento.
-public class AIUnit : SerializedMonoBehaviour, IMWRUser
+public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
 {
-    //ahora mismo el sistema no es muy bueno, pero alv.
-    private const float CAMERA_TO_WORLD_DISTANCE = 10f;
 
     public bool selected = false;
     public bool gizmos;
     public Team team;
 
-    
 
+    public event SelectionEvent SelectionStateChanged = delegate { };
+    //used by the MWR
     public static event Action<AIUnit> OnDeath = delegate { };
     public static event Action<AIUnit> OnSpawn = delegate { };
 
@@ -53,8 +51,7 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser
     }
     public AIUnitData data;
 
-
-    [HideInInspector]
+    
     private void UpdatePosibleTargets()
     {
         StopHearingFromOldPossibleTargets();
@@ -143,6 +140,9 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser
     private Vector2Int currentCoordinates = new Vector2Int(int.MaxValue, int.MaxValue);
     public MovementWorldRepresentation MWR { get; set; }
 
+    public Team Team { get { return team; } }
+
+    public UIMode UIMode { get { return UIMode.UNIT; } }
 
 
     private void OnMBUpdate()
@@ -176,6 +176,7 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser
         }
     }
     
+    //ojo con esto y el awake. Ya que hacen muchas cosas similares.
     public void AddNewChild(AIAgent agent)
     {
         if (children.Count >= (int)data.maxSize) Debug.LogError("chindren count is full. You can't add more");
@@ -184,8 +185,10 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser
         agent.OnEntityDeath += OnChildrenDeath;
         agent.parent = this;
 
+        SelectionStateChanged();
         UpdateFormationAndChildren();
     }
+
     //acá se llama la muerte de una unidad
     public void OnChildrenDeath(Entity child)
     {
@@ -201,6 +204,8 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser
             return;
         }
 
+
+        SelectionStateChanged();
         UpdateFormationAndChildren();
     }
 
@@ -283,11 +288,13 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser
             child.parent = this;            
         }
         movementAI = GetComponent<IAstarAI>();
+        SelectionStateChanged();
         UpdateFormationAndChildren();
-
+        
     }
 
-
+        
+   
 
 
     private void LateStart()
@@ -322,24 +329,24 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser
         }
 
         mbTimer += Time.deltaTime;
-        if (selected)
-        {
-            if (Input.GetMouseButtonDown(1))
-            {
-                Vector3 point = Camera.main.ScreenToWorldPoint(new Vector3( Input.mousePosition.x, Input.mousePosition.y, CAMERA_TO_WORLD_DISTANCE));
-                Vector2Int cell = MWR.GetCell(point);                
+        //if (selected)
+        //{
+        //    if (Input.GetMouseButtonDown(1))
+        //    {
+        //        Vector3 point = Camera.main.ScreenToWorldPoint(new Vector3( Input.mousePosition.x, Input.mousePosition.y, CameraController.CAMERA_TO_WORLD_DISTANCE));
+        //        Vector2Int cell = MWR.GetCell(point);                
 
-                if (MWR.MoveToCell(this, cell))
-                {
+        //        if (MWR.MoveToCell(this, cell))
+        //        {
 
-                }
-                else
-                {
-                    Debug.Log("movimiento fallido");
-                }
+        //        }
+        //        else
+        //        {
+        //            Debug.Log("movimiento fallido");
+        //        }
                 
-            }            
-        }
+        //    }            
+        //}
 
         if (MWR != null)
         {
@@ -403,5 +410,19 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser
 
     //    }
     }
-    
+
+    public void Select(SelectionManager manager)
+    {
+        Debug.Log($"selected {this}");
+    }
+
+    public void Deselect(SelectionManager manager)
+    {
+        Debug.Log($"deselect {this}");
+    }
+
+    public ISelectable GetSelectable()
+    {
+        return this;
+    }
 }

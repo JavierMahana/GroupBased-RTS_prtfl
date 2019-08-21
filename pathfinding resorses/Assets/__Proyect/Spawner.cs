@@ -5,11 +5,8 @@ using Lean.Pool;
 using System;
 using Sirenix.OdinInspector;
 
-[RequireComponent(typeof(Entity))]
-public class Spawner : MonoBehaviour
-{    
-    public static event Action<Spawner> OnSelect  = delegate{ };
-
+public class Spawner : Structure
+{        
     public UnitDataToUnit unitDictionary;
     public List<AIUnitData> spawnUnits;
     public Direction spawnDirection;
@@ -35,18 +32,18 @@ public class Spawner : MonoBehaviour
                     break;
             }
 
-            return (Vector2)transform.position + (direction * (entity.Radious + spawnOffSet));
+            return (Vector2)transform.position + (direction * (Radious + spawnOffSet));
         }
-    }         
-    public Team team { get { return entity.Team; } }
-    private Entity entity;
+    }
 
-
-
-    [Button]
-    public void Select()
+    public override UIMode UIMode { get { return UIMode.SPAWNER; } }
+    public override void Select(SelectionManager manager)
     {
-        OnSelect(this);
+        base.Select(manager);
+    }
+    public override void Deselect(SelectionManager manager)
+    {
+        base.Deselect(manager);
     }
 
     public bool TrySpawnUnit(AIUnitData unitData, out AIUnit newUnit)
@@ -76,11 +73,6 @@ public class Spawner : MonoBehaviour
 
             return true;
         }
-    }
-
-    private void Start()
-    {
-        entity = GetComponent<Entity>();        
     }
 }
 public enum Direction

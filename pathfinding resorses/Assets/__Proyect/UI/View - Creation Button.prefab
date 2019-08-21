@@ -546,7 +546,7 @@ MonoBehaviour:
   UpdateHideProgressorOnShow: 0
   UpdateShowProgressorOnHide: 0
   UseCustomStartAnchoredPosition: 1
-  ViewCategory: Down Menu
+  ViewCategory: Selection Menu
   ViewName: Creation
 --- !u!222 &7979006611658286815
 CanvasRenderer:
@@ -686,7 +686,7 @@ PrefabInstance:
     - target: {fileID: 3560400926115990976, guid: 224efac5378ad144a99b70b0530478f9,
         type: 3}
       propertyPath: m_textInfo.lineCount
-      value: 3
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3560400926115990976, guid: 224efac5378ad144a99b70b0530478f9,
         type: 3}
@@ -696,7 +696,7 @@ PrefabInstance:
     - target: {fileID: 3560400926115990976, guid: 224efac5378ad144a99b70b0530478f9,
         type: 3}
       propertyPath: m_firstOverflowCharacterIndex
-      value: 0
+      value: -1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 224efac5378ad144a99b70b0530478f9, type: 3}

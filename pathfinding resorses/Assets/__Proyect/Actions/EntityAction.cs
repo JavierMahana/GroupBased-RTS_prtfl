@@ -5,10 +5,7 @@ using System;
 
 public abstract class EntityAction : MonoBehaviour
 {
-    //no es tan bueno que sepa la info especifica del agente.
-    // es posible que una estructura tambien actúe.
-    //ej: una torreta que ataca a enemigos
-
+    
     protected Entity entity;
     
     protected WaitForSeconds wait;
@@ -35,7 +32,6 @@ public abstract class EntityAction : MonoBehaviour
     {
         StartCoroutine(NotificateEndOfAction());
     }
-
     protected IEnumerator NotificateEndOfAction()
     {
         yield return wait;

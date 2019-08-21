@@ -5,9 +5,7 @@ using Sirenix.OdinInspector;
 using System;
 
 public abstract class Entity : SerializedMonoBehaviour, IEntity
-{
-    [HideInInspector]
-    public Action<Entity> OnEntitySelection = delegate { };
+{        
     [HideInInspector]
     public Action<Entity> OnEntityDeath = delegate { };
     [HideInInspector]

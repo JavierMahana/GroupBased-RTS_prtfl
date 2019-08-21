@@ -80,6 +80,7 @@ public abstract class BehaviourSet : ScriptableObject
         return currentDesiredPostion;
     }
 
+    //dudo de su continuidad
     protected Vector2 GetPostion(AIAgent requester)
     {
         bool hasRB = requester.body != null ? true : false;

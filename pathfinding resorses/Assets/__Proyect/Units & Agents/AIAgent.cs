@@ -7,20 +7,44 @@ using System;
 using Lean.Pool;
 
 [RequireComponent(typeof(Health))]
-public class AIAgent : Entity
+public class AIAgent : Entity, ITriggerSelection
 {
-    public static int cantidadAgentes = 0;
-    private Health health;
-
-    public bool debug;
-    public bool gizmos;
     //hacer un parametro de posicion, el cual adquiera la posicion solo una vez por frame.
+
+    #region Variables set in the inspector
+    public AIAgentData data;
+    public bool debug;
+    public bool gizmos;    
     public AIUnit parent;
+    public EntityAction entityAction;
+    #endregion
+
+    #region Variables set in initialization
+    private Health health;
+    public Rigidbody2D body;
+    #endregion
+
+    [HideInInspector]
+    public float repathTimer;
+    private float bsChangeTimer = 0;
+    private float bsTimer = 0;
+    public float timeToRepath = 1;
 
 
     private bool shouldRecalculateNow = false;
     private bool dontRecalculate = false;
-    public EntityAction entityAction;
+    private bool acting = false;
+    private bool currentlyUsingSB = false;
+    private bool sbConsistency;
+    private Vector2 currentStuckDestination;
+    private float movementDelta = float.MaxValue;
+    private float movementDeltaTimer = 0;
+    private Vector2 comparationPosition = Vector2.positiveInfinity; //set and used on "MovementDelta"
+
+    private Vector2 prevPosition1, prevPosition2;
+    private float lastDelta;
+    private int prevFrame;
+
 
     private bool BSJustChanged
     {
@@ -28,12 +52,7 @@ public class AIAgent : Entity
         {
             return bsChangeTimer < data.timeBSJustChangedIsTrue;
         }
-    }
-    private float bsChangeTimer = 0;
-
-    private bool currentlyUsingSB = false;
-    public Vector2 currentStuckDestination;
-
+    }        
     private bool InActionRangeToDestination
     {
         get
@@ -64,28 +83,6 @@ public class AIAgent : Entity
 
         }
     }
-
-    private bool sbConsistency;
-    public Rigidbody2D body;
-
-    private float movementDelta = float.MaxValue;
-    private float movementDeltaTimer = 0;
-    private Vector2 comparationPosition = Vector2.positiveInfinity; //set and used on "MovementDelta"
-
-    private void OnActionFinished()
-    {
-        acting = false;
-        shouldRecalculateNow = true;
-        dontRecalculate = false;
-    }
-    private void SendActionStartEvents()
-    {
-        acting = true;
-        dontRecalculate = true;
-        ActionBegan(Target);
-    }
-
-    private bool acting = false;
     private bool OnActState
     {
         get { return data.actionBehaviour == ActiveBehaviourSet; }
@@ -114,11 +111,6 @@ public class AIAgent : Entity
         }
     }
     public IAstarAI AI { get; private set; }
-    public float timeToRepath = 1;
-    [HideInInspector]
-    public float repathTimer;
-
-
     public override Health Health { get { return health; } }
     public override float Radious
     {
@@ -141,7 +133,6 @@ public class AIAgent : Entity
     {
         get { return parent.ActiveMacro.GetDesiredDestination(this); }
     }
-
     //public Vector2 GeneralVelocity - Velocidad de la que toma referencia las animaciónes
     public Vector2 Velocity
     {
@@ -149,30 +140,41 @@ public class AIAgent : Entity
         {
             return lastDelta > 0.000001f ? (prevPosition1 - prevPosition2) / lastDelta : Vector2.zero; ;
         }
-    }
-    private Vector2 prevPosition1, prevPosition2;
-    private float lastDelta;
-    private int prevFrame;
-
-
-
-
+    }    
     public override Team Team { get { return parent.team; } }
-    private float bsTimer = 0;
+
+    public IBehaviourSet ActiveBehaviourSet
+    {
+        get
+        {
+            if (!dontRecalculate && (bsTimer >= data.BS_UPDATE_TIME || activeBehaviourSet == null || shouldRecalculateNow))
+            {
+                activeBehaviourSet = parent.ActiveMacro.GetBehaviourSet(this);
+                bsTimer = 0;
+                shouldRecalculateNow = false;
+            }
+            return activeBehaviourSet;
+        }
+    }
+    private IBehaviourSet activeBehaviourSet;
 
 
-    //agruegar timer y implementar la fncionalidad al bh de avoidance. :v
-    //public AIAgent ObstacleToEvade
-    //{
-    //    get
-    //    {
-    //        SteeringBehaviour.GetClosestAgent(this, transform.position, parent.ClosestUnit.children)
-    //    }
-    //}
-    public int ciclesToRecalculateObstacle = 8;
-    private int obstacleCicles;
-
-    public AIAgentData data;
+    public ISelectable GetSelectable()
+    {
+        return parent;
+    }
+    private void OnActionFinished()
+    {
+        acting = false;
+        shouldRecalculateNow = true;
+        dontRecalculate = false;
+    }
+    private void SendActionStartEvents()
+    {
+        acting = true;
+        dontRecalculate = true;
+        ActionBegan(Target);
+    }
     private void ResetMovementDelta()
     {
         movementDelta = float.MaxValue;
@@ -195,23 +197,6 @@ public class AIAgent : Entity
     {
         bsChangeTimer = 0;
     }
-    public IBehaviourSet ActiveBehaviourSet
-    {
-        get
-        {
-            if (!dontRecalculate && (bsTimer >= data.BS_UPDATE_TIME || activeBehaviourSet == null || shouldRecalculateNow))
-            {
-                activeBehaviourSet = parent.ActiveMacro.GetBehaviourSet(this);
-                bsTimer = 0;
-                shouldRecalculateNow = false;
-            }
-            return activeBehaviourSet;
-        }
-    }
-
-
-
-    private IBehaviourSet activeBehaviourSet;
     
     public bool UseStuckBehaviour(out Vector2? stuckDestination)
     {
@@ -259,9 +244,7 @@ public class AIAgent : Entity
         ResetMovementDelta();
         
         sbConsistency = UnityEngine.Random.Range(0, 2) == 0 ? true : false;
-    }
-
- 
+    } 
     private Vector2 CalculateStuckDestination(int obstacleLayerMask)
     {
         Vector2 position = transform.position;
@@ -290,6 +273,34 @@ public class AIAgent : Entity
         }
         else return tempStuckDest;
     }
+
+
+    private void Awake()
+    {
+        //started = true;
+        entityAction = GetComponent<EntityAction>();
+        if (entityAction == null) Debug.LogError("Entities must have an action");
+
+        health = GetComponent<Health>();
+        body = GetComponent<Rigidbody2D>();
+        GetAndSetAI();
+        StartUpVariables();
+
+        prevPosition1 = prevPosition2 = transform.position;
+
+
+    }
+    private void OnEnable()
+    {
+        health.InvokeDeath += OnDeath;
+        entityAction.ActionEnded += OnActionFinished;
+    }
+    private void OnDisable()
+    {
+        health.InvokeDeath -= OnDeath;
+        entityAction.ActionEnded -= OnActionFinished;
+    }
+
     private void Update()
     {
         if (body == null)
@@ -339,24 +350,9 @@ public class AIAgent : Entity
         bsChangeTimer += deltaTime;
         bsTimer += deltaTime;
         repathTimer += deltaTime;
-        obstacleCicles++;
         movementDeltaTimer += deltaTime;
     }
-    private void Awake()
-    {
-        //started = true;
-        entityAction = GetComponent<EntityAction>();
-        if (entityAction == null) Debug.LogError("Entities must have an action");
-
-        health = GetComponent<Health>();
-        body = GetComponent<Rigidbody2D>();
-        GetAndSetAI();
-        StartUpVariables();
-
-        prevPosition1 = prevPosition2 = transform.position;
-
-
-    }
+    
     private void GetAndSetAI()
     {
         AI = GetComponent<IAstarAI>();
@@ -400,18 +396,6 @@ public class AIAgent : Entity
     private void OnDeath()
     {
         OnEntityDeath(this);
-        gameObject.SetActive(false);        
+        LeanPool.Despawn(this);
     }
-
-    private void OnEnable()
-    {
-        health.InvokeDeath += OnDeath;
-        entityAction.ActionEnded += OnActionFinished;
-    }
-    private void OnDisable()
-    {
-        health.InvokeDeath -= OnDeath;
-        entityAction.ActionEnded -= OnActionFinished;
-    }
-
 }

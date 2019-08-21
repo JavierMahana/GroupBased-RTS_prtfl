@@ -1,0 +1,87 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &8286934547559784260
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6166133340791138981}
+  - component: {fileID: 7795232738653918369}
+  - component: {fileID: 4154997768425052326}
+  - component: {fileID: 4566229949552757221}
+  m_Layer: 0
+  m_Name: UI Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6166133340791138981
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8286934547559784260}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7795232738653918369
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8286934547559784260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58b9e68f6f8f001438387bc3992b0179, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  portraitDictionary: {fileID: 11400000, guid: 65d8853f900d09a4595d533918236af9, type: 2}
+  selectionGridPlaceHolders: []
+  deselectionEvent: Deselection
+  selectionManager: {fileID: 0}
+  spawnerUI: {fileID: 4154997768425052326}
+  unitUI: {fileID: 4566229949552757221}
+--- !u!114 &4154997768425052326
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8286934547559784260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e63d5c1441e02b0429ca685dce820c79, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  unitManager: {fileID: 0}
+  showSpawerUIEvent: SpawnerSelection
+  reinforcementButtonPrefab: {fileID: 6024326349266941953, guid: e18fd33c850c8e042a1010a0919c6456,
+    type: 3}
+  creationButtonPrefab: {fileID: 8593246335611559810, guid: 77041e6053eaa8b4f94e25d7a48afdbe,
+    type: 3}
+  newUnitButton: {fileID: 0}
+--- !u!114 &4566229949552757221
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8286934547559784260}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d6f4662901ce2e46a0b03c01524030e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  agentPanelPrefab: {fileID: 3595531452454590885, guid: d9cf5fd0e752e4040bd297ab40623504,
+    type: 3}
+  showUnitUIEvent: UnitSelection

@@ -33,7 +33,7 @@ public class CreationButton : MonoBehaviour
         button.onClick.AddListener(OnClickCallback); 
     }
 
-    private void OnClickCallback()
+    public void OnClickCallback()
     {
         OnCreationButtonClick(currSpawner, currentData);
     }
