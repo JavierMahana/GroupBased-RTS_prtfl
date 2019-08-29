@@ -16,11 +16,12 @@ public class SelectionManager : MonoBehaviour
 
     public ISelectable selected;
     public LayerMask selectableMask;
-
+    
     private void Update()
     {
         if (Input.GetMouseButtonUp(0) && canSelect && !EventSystem.current.IsPointerOverGameObject())
         {
+            Debug.Log("seleccionando");
             DeselectCurrentSelected();
             if (TryToSelect(out ISelectable newSelected))
             {
@@ -29,6 +30,18 @@ public class SelectionManager : MonoBehaviour
             SelectedHaveBeenUpdated(selected);
         }
     }
+    private void OnDisable()
+    {
+        if(!quit)
+            selected.SelectionStateChanged -= OnSelectedUpdate;
+    }
+    private bool quit;
+    private void OnApplicationQuit()
+    {
+        quit = true;
+    }
+
+
 
     private void DeselectCurrentSelected()
     {
@@ -36,16 +49,28 @@ public class SelectionManager : MonoBehaviour
         {
             selected.SelectionStateChanged -= OnSelectedUpdate;
             selected.Deselect(this);
+            selected = null;
         }
     }
     private void OnSelectedUpdate()
     {
         SelectedHaveBeenUpdated(selected);
     }
+    private void OnSelectedDeath(IKillable deathSelected)
+    {
+        deathSelected.OnDeath -= OnSelectedDeath; 
 
+        DeselectCurrentSelected();
+        SelectedHaveBeenUpdated(selected);
+    }
     private void SelectNewEntity(ISelectable newSelected)
     {
         selected = newSelected;
+        if (selected is IKillable)
+        {
+            IKillable kSelected = (IKillable)selected;
+            kSelected.OnDeath += OnSelectedDeath;
+        }
 
         selected.SelectionStateChanged += OnSelectedUpdate;
         selected.Select(this);       

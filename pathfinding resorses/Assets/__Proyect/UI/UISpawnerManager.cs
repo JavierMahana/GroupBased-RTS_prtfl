@@ -5,11 +5,17 @@ using Doozy.Engine;
 using Sirenix.OdinInspector;
 using Lean.Pool;
 
+
+//modo creación
+//en el panel estatico estarán las posibilidades de creación de unidades y en el flexible estará la info de la estructura.
+//modo refuerzo
+//en el panel estatico estarán un boton de atras y de crear nueva unidad y en el flexible estaran las unidades a las que se pueden mandar refuerzos.
 [RequireComponent(typeof(UISelectionMenuManager))]
 public class UISpawnerManager : MonoBehaviour
 {
     public UnitManager unitManager;
-    public string showSpawerUIEvent;
+    public string showCreationUIEvent;
+    public string showReinforcementUIEvent;
 
     [AssetsOnly]
     public RectTransform reinforcementButtonPrefab;
@@ -34,14 +40,14 @@ public class UISpawnerManager : MonoBehaviour
         Debug.Assert(reinforcementButtonPrefab != null && creationButtonPrefab != null, "The prefabs must be set");
         Debug.Assert(reinforcementButtonPrefab.GetComponentInChildren<ReinforcementButton>() != null && creationButtonPrefab.GetComponentInChildren<CreationButton>() != null, "The prefabs must have the buttons components in it!");
         #endregion
-        int lenght = selectionMenuManager.selectionGridPlaceHolders.Length;
+        int lenght = selectionMenuManager.staticGridPanelPlaceHolders.Length;
 
         creationButtons = new CreationButton[lenght];
         reinforcementButtons = new ReinforcementButton[lenght];
 
         for (int i = 0; i < lenght; i++)
         {
-            RectTransform placeHolder = selectionMenuManager.selectionGridPlaceHolders[i];
+            RectTransform placeHolder = selectionMenuManager.staticGridPanelPlaceHolders[i];
 
             int count = placeHolder.childCount;
             bool reinfRequired = true;
@@ -108,7 +114,7 @@ public class UISpawnerManager : MonoBehaviour
 
     public void ShowCreationView(Spawner spawner)
     {
-        GameEventMessage.SendEvent(showSpawerUIEvent);
+        GameEventMessage.SendEvent(showCreationUIEvent);
 
         HideCreationButtons();
         UpdateCreationButtons(spawner);
@@ -144,20 +150,21 @@ public class UISpawnerManager : MonoBehaviour
         }
     }
 
-
-
-    private void ShowReinforcementView(Spawner spawner, AIUnitData data)
+    public void ShowAndSetReinforcementView(Spawner spawner, AIUnitData data)
     {
-        List<AIUnit> compatibleUnits = unitManager.FindUnits(data, spawner.team);
+        spawner.SetReinforcementMode(data, unitManager);
+        ShowReinforcementView(spawner);
+    }
+    public void ShowReinforcementView(Spawner spawner)
+    {
+        GameEventMessage.SendEvent(showReinforcementUIEvent);
 
         HideReinforcementButtons();
-        UpdateReinforcementButtons(spawner, data, compatibleUnits);
-        newUnitButton.UpdateButton(data, spawner);
-
-
-
-        ShowReinfocementButtons(compatibleUnits.Count);
+        UpdateReinforcementButtons(spawner, spawner.currentUnitData);
+        ShowReinfocementButtons(spawner.currentReinforcementCompatibleUnits.Count);
+        newUnitButton.UpdateButton(spawner.currentUnitData, spawner);
     }
+
     private void HideReinforcementButtons()
     {
         foreach (ReinforcementButton button in reinforcementButtons)
@@ -172,14 +179,14 @@ public class UISpawnerManager : MonoBehaviour
             reinforcementButtons[i].gameObject.SetActive(true);
         }        
     }
-    private void UpdateReinforcementButtons(Spawner spawner, AIUnitData data, List<AIUnit> compatibleUnits)
+    private void UpdateReinforcementButtons(Spawner spawner, AIUnitData data)
     {
         Debug.Assert(selectionMenuManager.portraitDictionary.dictionary.TryGetValue(data, out Sprite buttonSprite), "update the portrait dictionary!");
-        if (compatibleUnits == null) return;
+        if (spawner.currentReinforcementCompatibleUnits == null) return;
 
-        for (int i = 0; i < compatibleUnits.Count; i++)
+        for (int i = 0; i < spawner.currentReinforcementCompatibleUnits.Count; i++)
         {
-            AIUnit currUnit = compatibleUnits[i];
+            AIUnit currUnit = spawner.currentReinforcementCompatibleUnits[i];
             ReinforcementButton currButton = reinforcementButtons[i];
             Debug.Assert(currUnit && currButton != null);
 
@@ -193,10 +200,10 @@ public class UISpawnerManager : MonoBehaviour
 
     private void OnEnable()
     {
-        CreationButton.OnCreationButtonClick += ShowReinforcementView;
+        CreationButton.OnCreationButtonClick += ShowAndSetReinforcementView;
     }
     private void OnDisable()
     {
-        CreationButton.OnCreationButtonClick -= ShowReinforcementView;
+        CreationButton.OnCreationButtonClick -= ShowAndSetReinforcementView;
     }
 }

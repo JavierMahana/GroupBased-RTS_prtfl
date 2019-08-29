@@ -12,9 +12,4 @@ public interface ISelectable : ITriggerSelection
     UIMode UIMode { get; }
 }
 public delegate void SelectionEvent();
-public enum UIMode
-{
-    UNIT,
-    SPAWNER,
-    OTHER
-}
+

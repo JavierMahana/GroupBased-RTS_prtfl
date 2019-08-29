@@ -64,7 +64,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   unitManager: {fileID: 0}
-  showSpawerUIEvent: SpawnerSelection
+  showCreationUIEvent: ShowCreation
+  showReinforcementUIEvent: ShowReinforcement
   reinforcementButtonPrefab: {fileID: 6024326349266941953, guid: e18fd33c850c8e042a1010a0919c6456,
     type: 3}
   creationButtonPrefab: {fileID: 8593246335611559810, guid: 77041e6053eaa8b4f94e25d7a48afdbe,

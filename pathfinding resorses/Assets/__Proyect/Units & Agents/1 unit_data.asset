@@ -25,14 +25,13 @@ MonoBehaviour:
     - Name: targetFilter
       Entry: 10
       Data: 0
-  MB_UPDATE_TIME: 1
   childPrefab: {fileID: 7996349968576022638, guid: 1003fe3f88f080f44be46ffecb45a270,
     type: 3}
   formationData: {fileID: 11400000, guid: 27f85a7a1e11dfa46bda7277a9ad8bfd, type: 2}
   maxSize: 9
   detectableLayers:
     serializedVersion: 2
-    m_Bits: 2304
+    m_Bits: 6400
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 512

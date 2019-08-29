@@ -6,13 +6,13 @@ using Sirenix.OdinInspector;
 [CreateAssetMenu (menuName ="AI/Unit Data")]
 public class AIUnitData : SerializedScriptableObject
 {
-    public const float MB_UPDATE_TIME = 5f;//hacer private constante luego de probar un tiempo bueno
+    public const float MB_UPDATE_TIME = 0.5f;//hacer private constante luego de probar un tiempo bueno
 
     [Required]
     [AssetsOnly]
     public AIAgent childPrefab;
 
-    public IEntityFilter targetFilter;
+    public ITargetableFilter targetFilter;
     public FormationData formationData;
     public UnitType maxSize = UnitType.STANDART;
     public LayerMask detectableLayers;
@@ -26,5 +26,5 @@ public enum UnitType
     GRAND = 2,
     BIG = 4,
     STANDART = 9,
-    SMALL = 16
+    //SMALL = 16 not suported yet
 }

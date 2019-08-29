@@ -9,21 +9,23 @@ public class StructureManager : MonoBehaviour
     private void OnStructureCreation(Structure structure)
     {
         allActiveStructures.Add(structure);
+        structure.OnDeath += OnStructureDeath;
     }    
-    private void OnStructureDeath(Structure structure)
+    private void OnStructureDeath(IKillable structure)
     {
-        allActiveStructures.Remove(structure);
+        Debug.Assert(structure is Structure);
+
+        allActiveStructures.Remove((Structure)structure);
+        structure.OnDeath -= OnStructureDeath;
     }
 
     private void Awake()
     {
-        Structure.OnDeath += OnStructureDeath;
         Structure.OnSpawn += OnStructureCreation;
     }
 
     private void OnDisable()
     {
-        Structure.OnDeath -= OnStructureDeath;
         Structure.OnSpawn -= OnStructureCreation;
     }
 

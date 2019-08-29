@@ -5,18 +5,20 @@ using System;
 using Sirenix.OdinInspector;
 using Pathfinding;
 using Lean.Pool;
-
-public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
+using UnityEngine.EventSystems;
+public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable, IKillable
 {
+    //estoy viendo cuando llama a la actualización de UI
 
+    public IKillable KillableEntity { get { return this; } }
     public bool selected = false;
     public bool gizmos;
     public Team team;
 
+    public event KillableEvent OnDeath = delegate { };
 
     public event SelectionEvent SelectionStateChanged = delegate { };
-    //used by the MWR
-    public static event Action<AIUnit> OnDeath = delegate { };
+    //used by the managers to listen to this
     public static event Action<AIUnit> OnSpawn = delegate { };
 
     public List<AIAgent> children = new List<AIAgent>();
@@ -49,9 +51,11 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
             return closestUnit;
         }
     }
-    public AIUnitData data;
+    public virtual AIUnitData Data => data;
+    [SerializeField]
+    [Required]
+    private AIUnitData data = null;
 
-    
     private void UpdatePosibleTargets()
     {
         StopHearingFromOldPossibleTargets();
@@ -63,14 +67,14 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
 
         Vector2 position = transform.position;
 
-        List<Entity> filteredEntities = GetFilteredEntitiesInRange(position);
-        if (filteredEntities == null || filteredEntities.Count == 0)
+        List<ITargetable> filteredTargets = GetFilteredTargetableInRange(position);
+        if (filteredTargets == null || filteredTargets.Count == 0)
         {
             posibleTargets = null;            
         }
         else
         {
-            List<Entity> targets = GetPrioritizedTargets(filteredEntities, position);
+            List<ITargetable> targets = GetPrioritizedTargets(filteredTargets, position);
             posibleTargets = targets;            
         }
 
@@ -78,29 +82,30 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
         ListenPosibleTargetsEvents();
     }
 
-    private void OnPosibleTargetDeath(Entity entity)
+    private void OnPosibleTargetDeath(IKillable posibleTarget)
     {
+        
         UpdatePosibleTargets();
     }
     private void StopHearingFromOldPossibleTargets()
     {
         if (posibleTargets == null || posibleTargets.Count == 0) return;
-        foreach (Entity entity in posibleTargets)
+        foreach (ITargetable target in posibleTargets)
         {
-            entity.OnEntityDeath -= OnPosibleTargetDeath;
+            target.OnDeath -= OnPosibleTargetDeath;
         }
     }
     private void ListenPosibleTargetsEvents()
     {
         if (posibleTargets == null || posibleTargets.Count == 0) return;
 
-        foreach (Entity entity in posibleTargets)
+        foreach (IKillable target in posibleTargets)
         {
-            entity.OnEntityDeath += OnPosibleTargetDeath;
+            target.OnDeath += OnPosibleTargetDeath;
         }
     }
-    [HideInInspector]
-    public List<Entity> posibleTargets = null;
+    //[HideInInspector]
+    public List<ITargetable> posibleTargets = null;
 
 
     #region macro behaviour
@@ -142,7 +147,7 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
 
     public Team Team { get { return team; } }
 
-    public UIMode UIMode { get { return UIMode.UNIT; } }
+    public virtual UIMode UIMode { get { return UIMode.UNIT; } }
 
 
     private void OnMBUpdate()
@@ -177,64 +182,58 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
     }
     
     //ojo con esto y el awake. Ya que hacen muchas cosas similares.
-    public void AddNewChild(AIAgent agent)
+    public void AddNewChild(AIAgent child)
     {
-        if (children.Count >= (int)data.maxSize) Debug.LogError("chindren count is full. You can't add more");
+        if (children.Count >= (int)Data.maxSize) Debug.LogError("chindren count is full. You can't add more");
+        children.Add(child);
 
-        children.Add(agent);
-        agent.OnEntityDeath += OnChildrenDeath;
-        agent.parent = this;
+        child.OnDeath += OnChildrenDeath;
+        child.parent = this;
 
         SelectionStateChanged();
         UpdateFormationAndChildren();
-    }
-
-    //acá se llama la muerte de una unidad
-    public void OnChildrenDeath(Entity child)
+    }    
+    public void OnChildrenDeath(IKillable child)
     {
         if (!children.Remove((AIAgent)child)) Debug.LogError("the agent isn't your children");
-        child.OnEntityDeath -= OnChildrenDeath;
+        child.OnDeath -= OnChildrenDeath;
 
         if (children.Count == 0)
         {
-            //OnDeath(this);
-            //acá se llama a el sistema de despawneo
-            LeanPool.Despawn(this);
-            //gameObject.SetActive(false);
+            LeanPool.Despawn(this);            
             return;
         }
-
 
         SelectionStateChanged();
         UpdateFormationAndChildren();
     }
 
 
-    private List<Entity> GetFilteredEntitiesInRange(Vector2 position)
+    private List<ITargetable> GetFilteredTargetableInRange(Vector2 position)
     {
-        Collider2D[] allColliders = Physics2D.OverlapCircleAll(position, data.detectionRadious, data.detectableLayers);
-        List<Entity> allEntities = GetAllEntities(allColliders);
-        List<Entity> filteredEntities = data.targetFilter.FilterEntities(this, allEntities);
-        return filteredEntities;
+        Collider2D[] allColliders = Physics2D.OverlapCircleAll(position, Data.detectionRadious, Data.detectableLayers);
+        List<ITargetable> allEntities = GetAllTargetable(allColliders);
+        List<ITargetable> filteredTargetable = Data.targetFilter.FilterTargets(this, allEntities);
+        return filteredTargetable;
     }
-    private List<Entity> GetPrioritizedTargets(List<Entity> filteredPosibleTargets, Vector2 position)
+    private List<ITargetable> GetPrioritizedTargets(List<ITargetable> filteredPosibleTargets, Vector2 position)
     {
         bool haveAgent = false;
 
-        Entity closestEntity = null;//eventualmente esto será una estructura
-        float closestEntitySqrDist = float.MaxValue;
+        ITargetable closestPosibleTarget = null;//estructuras?
+        float closestStructureSqrDist = float.MaxValue;
         AIAgent closestAgent = null;
         float closestAgentSqrDist = float.MaxValue;
-        foreach (Entity entity in filteredPosibleTargets)
+        foreach (ITargetable targetable in filteredPosibleTargets)
         {
-            Vector2 entityPos = entity.GameObject.transform.position;
-            if (entity is AIAgent)
+            Vector2 targetPos = targetable.GameObject.transform.position;
+            if (targetable is AIAgent)
             {
                 haveAgent = true;
-                float sqrDist = Vector2Utilities.SqrDistance(entityPos, position);
+                float sqrDist = Vector2Utilities.SqrDistance(targetPos, position);
                 if (sqrDist < closestAgentSqrDist)
                 {
-                    closestAgent = (AIAgent)entity;
+                    closestAgent = (AIAgent)targetable;
                     closestAgentSqrDist = sqrDist;
                 }
             }
@@ -242,40 +241,40 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
             {
                 if (haveAgent) continue;
 
-                float sqrDist = Vector2Utilities.SqrDistance(entityPos, position);
-                if (sqrDist < closestEntitySqrDist)
+                float sqrDist = Vector2Utilities.SqrDistance(targetPos, position);
+                if (sqrDist < closestStructureSqrDist)
                 {
-                    closestEntity = entity;
-                    closestEntitySqrDist = sqrDist;
+                    closestPosibleTarget = targetable;
+                    closestStructureSqrDist = sqrDist;
                 }
             }
         }
 
-        List<Entity> returnTargets = new List<Entity>();
+        List<ITargetable> returnTargets = new List<ITargetable>();
         if (haveAgent)
         {
-            returnTargets = closestAgent.parent.children.ConvertAll(x => (Entity)x);
+            returnTargets = closestAgent.parent.children.ConvertAll(x => (ITargetable)x);
             return returnTargets;
         }
-        else if (closestEntity != null)
+        else if (closestPosibleTarget != null)
         {
-            returnTargets.Add(closestEntity);
+            returnTargets.Add(closestPosibleTarget);
             return returnTargets;
         }
         else
             return null;
     }
-    private List<Entity> GetAllEntities(Collider2D[] posibleEntities)
+    private List<ITargetable> GetAllTargetable(Collider2D[] posibleTargets)
     {
-        List<Entity> entities = new List<Entity>();
-        for (int i = 0; i < posibleEntities.Length; i++)
+        List<ITargetable> targetables = new List<ITargetable>();
+        for (int i = 0; i < posibleTargets.Length; i++)
         {
-            Collider2D curr = posibleEntities[i];
-            Entity currEntity = curr.GetComponent<Entity>();
-            if (currEntity == null) continue;
-            else entities.Add(currEntity);
+            Collider2D curr = posibleTargets[i];
+            ITargetable currTarget = curr.GetComponent<ITargetable>();
+            if (currTarget == null) continue;
+            else targetables.Add(currTarget);
         }
-        return entities;
+        return targetables;
     }
 
     private bool safeEventInvoke = false;
@@ -284,17 +283,28 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
         safeEventInvoke = false;
         foreach (AIAgent child in children)
         {
-            child.OnEntityDeath += OnChildrenDeath;
+            child.OnDeath += OnChildrenDeath;
             child.parent = this;            
         }
         movementAI = GetComponent<IAstarAI>();
         SelectionStateChanged();
-        UpdateFormationAndChildren();
+
+        if (children.Count != 0)
+        {
+            UpdateFormationAndChildren();
+        }
         
     }
+    private void OnApplicationQuit()
+    {
+        quit = true;
+        foreach (IKillable child in children)
+        {
+            child.OnDeath -= OnChildrenDeath;
+        }
+    }
 
-        
-   
+
 
 
     private void LateStart()
@@ -313,12 +323,11 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
     }
     private void OnDisable()
     {
-        if (safeEventInvoke)
-        {
+        if(!quit)
             OnDeath(this);
-        }
-            
     }
+    private bool quit;
+    
 
     private void Update()
     {
@@ -329,24 +338,24 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
         }
 
         mbTimer += Time.deltaTime;
-        //if (selected)
-        //{
-        //    if (Input.GetMouseButtonDown(1))
-        //    {
-        //        Vector3 point = Camera.main.ScreenToWorldPoint(new Vector3( Input.mousePosition.x, Input.mousePosition.y, CameraController.CAMERA_TO_WORLD_DISTANCE));
-        //        Vector2Int cell = MWR.GetCell(point);                
+        if (selected)
+        {
+            if (Input.GetMouseButtonDown(1) && !EventSystem.current.IsPointerOverGameObject())
+            {
+                Vector3 point = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, CameraController.CAMERA_TO_WORLD_DISTANCE));
+                Vector2Int cell = MWR.GetCell(point);
 
-        //        if (MWR.MoveToCell(this, cell))
-        //        {
+                if (MWR.MoveToCell(this, cell))
+                {
 
-        //        }
-        //        else
-        //        {
-        //            Debug.Log("movimiento fallido");
-        //        }
-                
-        //    }            
-        //}
+                }
+                else
+                {
+                    Debug.Log("movimiento fallido");
+                }
+
+            }
+        }
 
         if (MWR != null)
         {
@@ -379,10 +388,9 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
             orderedChildren[index] = current;
             childrenCopy.Remove(current);
             index++;
-        }
-        Debug.Log("actualizando slots");
-        Vector2Int key = new Vector2Int(orderedChildren.Length, (int)data.maxSize);
-        if (! data.formationData.FormationOffsetData.TryGetValue(key, out formationSlots))
+        }        
+        Vector2Int key = new Vector2Int(orderedChildren.Length, (int)Data.maxSize);
+        if (! Data.formationData.FormationOffsetData.TryGetValue(key, out formationSlots))
         {
             Debug.LogError($"invalid pair; key:{key}|at: {this}");
         } 
@@ -413,11 +421,13 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable
 
     public void Select(SelectionManager manager)
     {
+        selected = true;
         Debug.Log($"selected {this}");
     }
 
     public void Deselect(SelectionManager manager)
     {
+        selected = false;
         Debug.Log($"deselect {this}");
     }
 

@@ -31,7 +31,7 @@ MonoBehaviour:
   maxSize: 9
   detectableLayers:
     serializedVersion: 2
-    m_Bits: 2304
+    m_Bits: 6400
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 512

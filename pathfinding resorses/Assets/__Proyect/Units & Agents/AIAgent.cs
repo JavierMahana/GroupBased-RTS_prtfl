@@ -7,8 +7,13 @@ using System;
 using Lean.Pool;
 
 [RequireComponent(typeof(Health))]
-public class AIAgent : Entity, ITriggerSelection
+public class AIAgent : SerializedMonoBehaviour, ITriggerSelection, ITargetable, IActable
 {
+    public event KillableEvent OnDeath = delegate { };
+    public event ActionEvent OnActionStart = delegate { };
+
+
+
     //hacer un parametro de posicion, el cual adquiera la posicion solo una vez por frame.
 
     #region Variables set in the inspector
@@ -16,7 +21,7 @@ public class AIAgent : Entity, ITriggerSelection
     public bool debug;
     public bool gizmos;    
     public AIUnit parent;
-    public EntityAction entityAction;
+    public BaseAction action;
     #endregion
 
     #region Variables set in initialization
@@ -58,7 +63,7 @@ public class AIAgent : Entity, ITriggerSelection
         get
         {
             float distanceToDestination = Vector2.Distance(transform.position, Destination);
-            if (distanceToDestination < (data.reachDestinationMargin + entityAction.BaseData.rangeOfAction))
+            if (distanceToDestination < (data.reachDestinationMargin + action.BaseData.rangeOfAction))
             {
                 return true;
             }
@@ -87,42 +92,42 @@ public class AIAgent : Entity, ITriggerSelection
     {
         get { return data.actionBehaviour == ActiveBehaviourSet; }
     }
-    public Entity Target
+    public ITargetable Target
     {
         get
         {
-            List<Entity> options = parent.posibleTargets;
+            List<ITargetable> options = parent.posibleTargets;
             if (options == null || options.Count == 0) return null;
 
             Vector2 position = transform.position;
-            Entity returnEntity = options[0];
-            float closestEntitySqrDist = Vector2Utilities.SqrDistance(position, returnEntity.GameObject.transform.position);
+            ITargetable returnTarget = options[0];
+            float closestEntitySqrDist = Vector2Utilities.SqrDistance(position, returnTarget.GameObject.transform.position);
             for (int i = 1; i < options.Count; i++)
             {
-                Entity currEntity = options[i];
-                float currSqrDist = Vector2Utilities.SqrDistance(position, currEntity.GameObject.transform.position);
+                ITargetable currTarget = options[i];
+                float currSqrDist = Vector2Utilities.SqrDistance(position, currTarget.GameObject.transform.position);
                 if (currSqrDist < closestEntitySqrDist)
                 {
-                    returnEntity = currEntity;
+                    returnTarget = currTarget;
                     closestEntitySqrDist = currSqrDist;
                 }
             }
-            return returnEntity;
+            return returnTarget;
         }
     }
     public IAstarAI AI { get; private set; }
-    public override Health Health { get { return health; } }
-    public override float Radious
+    public Health Health { get { return health; } }
+    public float Radious
     {
         get
         { return data.radious; }
     }
-    public override Shape BodyShape
+    public Shape BodyShape
     {
         get
         { return data.shape; }
     }
-    public override GameObject GameObject
+    public GameObject GameObject
     {
         get
         {
@@ -141,7 +146,7 @@ public class AIAgent : Entity, ITriggerSelection
             return lastDelta > 0.000001f ? (prevPosition1 - prevPosition2) / lastDelta : Vector2.zero; ;
         }
     }    
-    public override Team Team { get { return parent.team; } }
+    public Team Team { get { return parent.team; } }
 
     public IBehaviourSet ActiveBehaviourSet
     {
@@ -158,7 +163,10 @@ public class AIAgent : Entity, ITriggerSelection
     }
     private IBehaviourSet activeBehaviourSet;
 
-
+    public void RecieveDamage(int damage)
+    {
+        Health.RecieveDamage(damage);
+    }
     public ISelectable GetSelectable()
     {
         return parent;
@@ -173,7 +181,7 @@ public class AIAgent : Entity, ITriggerSelection
     {
         acting = true;
         dontRecalculate = true;
-        ActionBegan(Target);
+        OnActionStart(Target);
     }
     private void ResetMovementDelta()
     {
@@ -204,7 +212,7 @@ public class AIAgent : Entity, ITriggerSelection
         {
             if (!Moving)
             {
-                stuckDestination = currentStuckDestination = CalculateStuckDestination(parent.data.obstacleLayerMask);
+                stuckDestination = currentStuckDestination = CalculateStuckDestination(parent.Data.obstacleLayerMask);
             }
 
 
@@ -226,7 +234,7 @@ public class AIAgent : Entity, ITriggerSelection
         {
             if (!Moving && !InActionRangeToDestination && !BSJustChanged)
             {
-                stuckDestination = currentStuckDestination = CalculateStuckDestination(parent.data.obstacleLayerMask);
+                stuckDestination = currentStuckDestination = CalculateStuckDestination(parent.Data.obstacleLayerMask);
                 currentlyUsingSB = true;
                 ResetMovementDelta();
                 return true;
@@ -278,8 +286,8 @@ public class AIAgent : Entity, ITriggerSelection
     private void Awake()
     {
         //started = true;
-        entityAction = GetComponent<EntityAction>();
-        if (entityAction == null) Debug.LogError("Entities must have an action");
+        action = GetComponent<BaseAction>();
+        if (action == null) Debug.LogError("Entities must have an action");
 
         health = GetComponent<Health>();
         body = GetComponent<Rigidbody2D>();
@@ -292,13 +300,12 @@ public class AIAgent : Entity, ITriggerSelection
     }
     private void OnEnable()
     {
-        health.InvokeDeath += OnDeath;
-        entityAction.ActionEnded += OnActionFinished;
+        action.ActionEnded += OnActionFinished;
     }
     private void OnDisable()
     {
-        health.InvokeDeath -= OnDeath;
-        entityAction.ActionEnded -= OnActionFinished;
+        action.ActionEnded -= OnActionFinished;
+        OnDeath(this);        
     }
 
     private void Update()
@@ -390,12 +397,5 @@ public class AIAgent : Entity, ITriggerSelection
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireSphere(transform.position, data.radious * data.separationRangeInRadious);
         }
-    }
-
-
-    private void OnDeath()
-    {
-        OnEntityDeath(this);
-        LeanPool.Despawn(this);
     }
 }

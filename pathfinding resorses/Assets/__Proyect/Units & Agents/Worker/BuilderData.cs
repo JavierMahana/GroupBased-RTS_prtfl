@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface ISpawnFilter 
+public class BuilderData : AIUnitData
 {
-    bool CanSpawn(out string errorMessage);
+    public List<StructureData> structuresData;
 }

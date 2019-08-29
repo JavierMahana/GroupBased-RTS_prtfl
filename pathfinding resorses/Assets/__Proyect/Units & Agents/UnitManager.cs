@@ -12,10 +12,14 @@ public class UnitManager : SerializedMonoBehaviour
     private void OnUnitCreation(AIUnit unit)
     {        
         allActiveUnits.Add(unit);
+        unit.OnDeath += OnUnitDeath;
     }    
-    private void OnUnitDeath(AIUnit unit)
+    private void OnUnitDeath(IKillable unit)
     {
-        allActiveUnits.Remove(unit);
+        Debug.Assert(unit is AIUnit);
+
+        allActiveUnits.Remove((AIUnit)unit);
+        unit.OnDeath -= OnUnitDeath;
     }
 
     public List<AIUnit> FindUnits(AIUnitData data, Team team)
@@ -26,7 +30,7 @@ public class UnitManager : SerializedMonoBehaviour
 
         foreach (AIUnit unit in allActiveUnits)
         {
-            if (unit.data == data && unit.team == team)
+            if (unit.Data == data && unit.team == team)
             {
                 returnUnits.Add(unit);
             }
@@ -40,25 +44,10 @@ public class UnitManager : SerializedMonoBehaviour
 
     private void Awake()
     {
-        AIUnit.OnDeath += OnUnitDeath;
         AIUnit.OnSpawn += OnUnitCreation;
     }
     private void OnDisable()
     {
-        AIUnit.OnDeath -= OnUnitDeath;
         AIUnit.OnSpawn -= OnUnitCreation;
     }
-
-    //private void SetUpVariablesInNeeded()
-    //{
-    //    if (mwrManager == null)
-    //    {
-    //        mwrManager = GetComponent<MWRManager>();
-    //        if (mwrManager == null)
-    //        {
-    //            mwrManager = FindObjectOfType<MWRManager>();
-    //            Debug.Assert(mwrManager != null, "must put a MWRManager!");
-    //        }
-    //    }
-    //}
 }

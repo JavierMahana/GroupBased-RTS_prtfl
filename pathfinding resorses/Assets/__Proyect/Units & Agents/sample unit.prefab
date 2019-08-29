@@ -106,6 +106,9 @@ MonoBehaviour:
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
     SerializationNodes:
+    - Name: posibleTargets
+      Entry: 6
+      Data: 
     - Name: independentMacro
       Entry: 10
       Data: 0
@@ -117,10 +120,9 @@ MonoBehaviour:
       Data: 
   selected: 0
   gizmos: 0
-  team: {fileID: 0}
+  team: {fileID: 11400000, guid: 4911ae2bee2d950458882e3c30093b10, type: 2}
   children: []
   data: {fileID: 11400000, guid: f3cdba2e351eb4540a102efa8f5a422a, type: 2}
-  posibleTargets: []
 --- !u!114 &8641106787132770885
 MonoBehaviour:
   m_ObjectHideFlags: 0

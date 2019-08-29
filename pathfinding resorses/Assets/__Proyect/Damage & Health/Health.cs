@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using Lean.Pool;
 
 public class Health : MonoBehaviour
-{
-    Entity entity;
-    
+{    
     public HealthData data;
-    public Action InvokeDeath = delegate { };
-
 
     [SerializeField]
     private int currentHealth;
@@ -17,11 +14,7 @@ public class Health : MonoBehaviour
 
     //luego debo implementar para poder recuperar vida
     public void RecieveDamage(int damage)
-    {
-     
-
-
-        //Debug.Log($"ayuda :{agent}");
+    {     
         int trueDamage = damage - data.defense;
         if (trueDamage < 1)
         {
@@ -34,14 +27,15 @@ public class Health : MonoBehaviour
         }
         if (currentHealth <= 0)
         {
-            InvokeDeath();
+            gameObject.SetActive(false);
+            //LeanPool.Despawn(this);
         }
     }
     
     private void Awake()
     {
-        entity = GetComponent<Entity>();
-        if (entity == null || data == null) Debug.LogError("Must assign variables!");
+        //damagable = GetComponent<IDamagable>();
+        //if (damagable == null || data == null) Debug.LogError("Must assign variables!");
         
         StartUpVariables();
     }

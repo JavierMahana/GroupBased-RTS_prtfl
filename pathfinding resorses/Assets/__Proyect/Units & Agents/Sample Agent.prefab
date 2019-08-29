@@ -130,7 +130,7 @@ MonoBehaviour:
   radius: 0.5
   height: 0.01
   repathRate: 1
-  canSearch: 1
+  canSearch: 0
   canMove: 0
   maxSpeed: 1
   gravity: {x: 0, y: 0, z: 0}
@@ -207,107 +207,15 @@ MonoBehaviour:
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
-    SerializationNodes:
-    - Name: OnEntitySelection
-      Entry: 7
-      Data: 0|System.Action`1[[Entity, Assembly-CSharp]], mscorlib
-    - Name: target
-      Entry: 7
-      Data: 1|Entity+<>c, Assembly-CSharp
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: declaringType
-      Entry: 7
-      Data: 2|System.RuntimeType, mscorlib
-    - Name: 
-      Entry: 1
-      Data: Entity+<>c, Assembly-CSharp
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: methodName
-      Entry: 1
-      Data: <.ctor>b__14_0
-    - Name: delegateType
-      Entry: 7
-      Data: 3|System.RuntimeType, mscorlib
-    - Name: 
-      Entry: 1
-      Data: System.Action`1[[Entity, Assembly-CSharp]], mscorlib
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: signature
-      Entry: 7
-      Data: 4|System.Type[], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 1
-    - Name: 
-      Entry: 7
-      Data: 5|System.RuntimeType, mscorlib
-    - Name: 
-      Entry: 1
-      Data: Entity, Assembly-CSharp
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: OnEntityDeath
-      Entry: 7
-      Data: 6|System.Action`1[[Entity, Assembly-CSharp]], mscorlib
-    - Name: target
-      Entry: 9
-      Data: 1
-    - Name: declaringType
-      Entry: 9
-      Data: 2
-    - Name: methodName
-      Entry: 1
-      Data: <.ctor>b__14_1
-    - Name: delegateType
-      Entry: 9
-      Data: 3
-    - Name: signature
-      Entry: 7
-      Data: 7|System.Type[], mscorlib
-    - Name: 
-      Entry: 12
-      Data: 1
-    - Name: 
-      Entry: 9
-      Data: 5
-    - Name: 
-      Entry: 13
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: 
-      Entry: 8
-      Data: 
-    - Name: ActionBegan
-      Entry: 6
-      Data: 
+    SerializationNodes: []
+  data: {fileID: 11400000, guid: 4bc6c68ce81f22c459cc7a6579659a9c, type: 2}
   debug: 0
   gizmos: 0
   parent: {fileID: 0}
-  entityAction: {fileID: 0}
-  currentStuckDestination: {x: 0, y: 0}
+  action: {fileID: 0}
   body: {fileID: 0}
-  timeToRepath: 1
   repathTimer: 0
-  ciclesToRecalculateObstacle: 8
-  data: {fileID: 11400000, guid: 4bc6c68ce81f22c459cc7a6579659a9c, type: 2}
+  timeToRepath: 1
 --- !u!114 &7996349968576022637
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -321,6 +229,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   data: {fileID: 11400000, guid: 11219c4ef7f6e854f88e9ae7e5f8e07c, type: 2}
+  currentHealth: 0
 --- !u!114 &7996349968576022646
 MonoBehaviour:
   m_ObjectHideFlags: 0

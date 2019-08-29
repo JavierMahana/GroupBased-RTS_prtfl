@@ -5,6 +5,8 @@ using Sirenix.OdinInspector;
 using Lean.Pool;
 using Doozy.Engine;
 
+
+//los agent panels estarán en el panel flexible y las habilidades en el estatico
 [RequireComponent(typeof(UISelectionMenuManager))]
 public class UIUnitManager : MonoBehaviour
 {
@@ -21,7 +23,7 @@ public class UIUnitManager : MonoBehaviour
     }
     private void InitAgentPanels()
     {
-        RectTransform[] gridPlaceHolders = selectionMenuManager.selectionGridPlaceHolders;
+        RectTransform[] gridPlaceHolders = selectionMenuManager.staticGridPanelPlaceHolders;
         unitAgentPanels = new AgentPanel[gridPlaceHolders.Length];
 
         for (int i = 0; i < gridPlaceHolders.Length; i++)
@@ -58,25 +60,39 @@ public class UIUnitManager : MonoBehaviour
         rectTransform.offsetMax = Vector2.zero;
         rectTransform.offsetMin = Vector2.zero;
     }
-    public void ShowUnitSelection(AIUnit unit)
+    public void ShowUnitSelection(AIUnit unit, int page = 1)
     {
         GameEventMessage.SendEvent(showUnitUIEvent);
 
         List<AIAgent> unitChildren = unit.children;
-        int count = unitChildren.Count;
 
-        UpdateAgentPanels(unit, count, unitChildren);
+        int count = selectionMenuManager.GetFlexiblePanelCount(unitChildren.Count, page);        
+
+        UpdateAgentPanels(unit, count, unitChildren, page);
+        HideAgentPanels();
+        ShowAgentPanels(count);
+    }
+    //must be on 
+    public void ChangePageOfUnitSelection(AIUnit unit, int page)
+    {
+        List<AIAgent> unitChildren = unit.children;
+
+        int count = selectionMenuManager.GetFlexiblePanelCount(unitChildren.Count, page);
+
+        UpdateAgentPanels(unit, count, unitChildren, page);
         HideAgentPanels();
         ShowAgentPanels(count);
     }
 
-    private void UpdateAgentPanels(AIUnit unit, int count, List<AIAgent> unitChildren)
+
+    private void UpdateAgentPanels(AIUnit unit, int count, List<AIAgent> unitChildren, int page)
     {
         for (int i = 0; i < count; i++)
         {
-            AIAgent child = unitChildren[i];
+            //el index del hijo es el relacionado al numero de la pagina
+            AIAgent child = unitChildren[i + (UISelectionMenuManager.FLEXIBLE_PANEL_SPACES * (page - 1))];
 
-            Debug.Assert(selectionMenuManager.portraitDictionary.dictionary.TryGetValue(child.parent.data, out Sprite sprite), "update the portrait dictionary!");
+            Debug.Assert(selectionMenuManager.portraitDictionary.dictionary.TryGetValue(child.parent.Data, out Sprite sprite), "update the portrait dictionary!");
 
             unitAgentPanels[i].UpdatePanel(child, sprite);
         }

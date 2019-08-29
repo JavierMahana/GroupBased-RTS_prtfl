@@ -39,23 +39,18 @@ public class MWRManager : MonoBehaviour
     private void SubscribeToEvents()
     {
         AIUnit.OnSpawn += OnUserSpawn;
-        AIUnit.OnDeath += OnUserDeath;
 
         Structure.OnSpawn += OnUserSpawn;
-        Structure.OnDeath += OnUserDeath;
     }
     private void UnSubscribeToEvents()
     {
         AIUnit.OnSpawn -= OnUserSpawn;
-        AIUnit.OnDeath -= OnUserDeath;
 
         Structure.OnSpawn -= OnUserSpawn;
-        Structure.OnDeath -= OnUserDeath;
     }
 
     private void OnUserSpawn(IMWRUser user)
     {
-        Debug.Log($"call:{user}");
         if (CurrentMWR.TryAssignUser(user))
         {
 
@@ -64,12 +59,17 @@ public class MWRManager : MonoBehaviour
         {
             Debug.Log($"initial positioning failed for: {user}");
         }
-        
+        user.KillableEntity.OnDeath += OnUserDeath;
     }
-    private void OnUserDeath(IMWRUser user)
+    private void OnUserDeath(IKillable kUser)
     {
+        Debug.Assert(kUser is IMWRUser);
+        IMWRUser user = (IMWRUser)kUser;
+
         Vector2Int cords = user.CurrentCoordintates;
-        CurrentMWR.worldRepresentation[cords.x, cords.y] = true;        
+        CurrentMWR.worldRepresentation[cords.x, cords.y] = true;
+
+        user.KillableEntity.OnDeath -= OnUserDeath;
     }
 
     private void CreateMWR()

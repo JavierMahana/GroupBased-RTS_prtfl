@@ -23,7 +23,7 @@ public class DependentRaycastMB : BaseRaycastMB, IMacroBehaviour
         }
 
         float sqrDist = Vector2Utilities.SqrDistance(pos, des);
-        if (sqrDist <= Mathf.Pow(requester.entityAction.BaseData.rangeOfAction + requester.data.reachDestinationMargin, 2))
+        if (sqrDist <= Mathf.Pow(requester.action.BaseData.rangeOfAction + requester.data.reachDestinationMargin, 2))
         {
             return actingBS;
         }
@@ -35,7 +35,7 @@ public class DependentRaycastMB : BaseRaycastMB, IMacroBehaviour
     {
         Vector2 position = requester.transform.position;
         AIAgentData requesterData = requester.data;
-        IEntity target = requester.Target;
+        ITargetable target = requester.Target;
         if (target == null)
         {
             //Debug.LogError($"{requester} has no posible targets");
