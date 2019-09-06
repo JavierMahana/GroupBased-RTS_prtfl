@@ -5,13 +5,37 @@ using Lean.Pool;
 using System;
 using Sirenix.OdinInspector;
 
+
 public class Spawner : Structure, ISelectable
 {
+
+    //no ha sido asignado nada. solo se copio para que no halla error
+    #region displayable
+    public string DisplayName => name;
+    public Sprite DisplayIcon => icon;
+    public string DisplayDesc => desc;
+    public Health DisplayHealth => null;
+    public Vector2Int? CapacityDisplay => null;
+    public List<IDisplayable> DependentDisplayables => null;
+    public List<AbilityData> Abilities => null;
+    public BaseButtonData[,] ComandCardButtons => null;
+
+
+    [SerializeField]
+    private Sprite icon = null;
+    [SerializeField]
+    private string desc = null;
+
+    #endregion
+
+
+
+
     public event SelectionEvent SelectionStateChanged = delegate { };
 
 
     public UnitDataToUnit unitDictionary;
-    public List<AIUnitData> spawnUnits;
+    public AIUnitData[] spawnOptions = new AIUnitData[UIStaticGridPanel.STATIC_PANEL_SPACES]; 
     public Direction spawnDirection;
     public float spawnOffSet = 0;
     public UIMode UIMode { get { return UIMode.SPAWNER; } }

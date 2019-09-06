@@ -6,20 +6,35 @@ using Sirenix.OdinInspector;
 using Pathfinding;
 using Lean.Pool;
 using UnityEngine.EventSystems;
+
+//podira luego transformarlo en una cascara, en donde hay muchos sistemas, pero la gracia es que acá es donde se asignan los valores
 public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable, IKillable
 {
-    //estoy viendo cuando llama a la actualización de UI
+    #region displayable
+    //displayable shit
+    public string DisplayName => name;
+    public Sprite DisplayIcon => data.displayebleData.icon;
+    public string DisplayDesc => data.displayebleData.desc;
+    public Health DisplayHealth => null;
+    public Vector2Int? CapacityDisplay => new Vector2Int(children.Count, (int)data.maxSize);
+    public List<IDisplayable> DependentDisplayables => children.ConvertAll(x => (IDisplayable)x);
+    public List<AbilityData> Abilities { get; }
+    public ComandCardButton[,] CommandCardButtons { get; }
+    public Dictionary<BaseButtonData, BaseCommand> ButtonToCommandDictionary => buttonToCommandDictionary;
+    private Dictionary<BaseButtonData, BaseCommand> buttonToCommandDictionary = new Dictionary<BaseButtonData, BaseCommand>();
 
-    public IKillable KillableEntity { get { return this; } }
+    
+    #endregion
+
+
+    //used by the managers to listen to this
+    public static event Action<AIUnit> OnSpawn = delegate { };       
+    public event KillableEvent OnDeath = delegate { };
+    public event SelectionEvent SelectionStateChanged = delegate { };
+
     public bool selected = false;
     public bool gizmos;
     public Team team;
-
-    public event KillableEvent OnDeath = delegate { };
-
-    public event SelectionEvent SelectionStateChanged = delegate { };
-    //used by the managers to listen to this
-    public static event Action<AIUnit> OnSpawn = delegate { };
 
     public List<AIAgent> children = new List<AIAgent>();
     private AIAgent[] orderedChildren;
@@ -138,7 +153,7 @@ public class AIUnit : SerializedMonoBehaviour, IMWRUser, ISelectable, IKillable
     {
         get { return movementAI.velocity.sqrMagnitude > 0.0001; }
     }
-
+    public IKillable KillableEntity { get { return this; } }
     public GameObject GameObject { get { return gameObject; } }
     //updated by MWRManager at "OnSpawn"
     public Vector2Int CurrentCoordintates { get; set; }

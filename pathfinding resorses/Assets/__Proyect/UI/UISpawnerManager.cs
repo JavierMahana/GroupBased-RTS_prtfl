@@ -32,74 +32,74 @@ public class UISpawnerManager : MonoBehaviour
     private void Start()
     {
         selectionMenuManager = GetComponent<UISelectionMenuManager>();
-        SetUpCreationAndReinforcementButtons();
+        //SetUpCreationAndReinforcementButtons();
     }
-    private void SetUpCreationAndReinforcementButtons()
-    {
-        #region asserts        
-        Debug.Assert(reinforcementButtonPrefab != null && creationButtonPrefab != null, "The prefabs must be set");
-        Debug.Assert(reinforcementButtonPrefab.GetComponentInChildren<ReinforcementButton>() != null && creationButtonPrefab.GetComponentInChildren<CreationButton>() != null, "The prefabs must have the buttons components in it!");
-        #endregion
-        int lenght = selectionMenuManager.staticGridPanelPlaceHolders.Length;
+    //private void SetUpCreationAndReinforcementButtons()
+    //{
+    //    #region asserts        
+    //    Debug.Assert(reinforcementButtonPrefab != null && creationButtonPrefab != null, "The prefabs must be set");
+    //    Debug.Assert(reinforcementButtonPrefab.GetComponentInChildren<ReinforcementButton>() != null && creationButtonPrefab.GetComponentInChildren<CreationButton>() != null, "The prefabs must have the buttons components in it!");
+    //    #endregion
+    //    int lenght = selectionMenuManager.staticGridPanelPlaceHolders.Length;
 
-        creationButtons = new CreationButton[lenght];
-        reinforcementButtons = new ReinforcementButton[lenght];
+    //    creationButtons = new CreationButton[lenght];
+    //    reinforcementButtons = new ReinforcementButton[lenght];
 
-        for (int i = 0; i < lenght; i++)
-        {
-            RectTransform placeHolder = selectionMenuManager.staticGridPanelPlaceHolders[i];
+    //    for (int i = 0; i < lenght; i++)
+    //    {
+    //        RectTransform placeHolder = selectionMenuManager.staticGridPanelPlaceHolders[i];
 
-            int count = placeHolder.childCount;
-            bool reinfRequired = true;
-            bool creatRequired = true;
+    //        int count = placeHolder.childCount;
+    //        bool reinfRequired = true;
+    //        bool creatRequired = true;
 
-            ReinforcementButton currRienfButt = null;
-            CreationButton currCreatButt = null;
+    //        ReinforcementButton currRienfButt = null;
+    //        CreationButton currCreatButt = null;
 
-            //for each placeholder instantiate a button if it isn't one yet.
-            for (int f = 0; f < count; f++)
-            {
-                Transform child = placeHolder.GetChild(f);
+    //        //for each placeholder instantiate a button if it isn't one yet.
+    //        for (int f = 0; f < count; f++)
+    //        {
+    //            Transform child = placeHolder.GetChild(f);
 
-                if (reinfRequired)
-                {
-                    ReinforcementButton tempReinfButt = child.GetComponentInChildren<ReinforcementButton>();
-                    reinfRequired = tempReinfButt == null;
-                    if (!reinfRequired) { currRienfButt = tempReinfButt; }
-                }
-                if (creatRequired)
-                {
-                    CreationButton tempCreatButt = child.GetComponentInChildren<CreationButton>();
-                    creatRequired = tempCreatButt == null;
-                    if (!creatRequired) { currCreatButt = tempCreatButt; }
-                }
-            }
+    //            if (reinfRequired)
+    //            {
+    //                ReinforcementButton tempReinfButt = child.GetComponentInChildren<ReinforcementButton>();
+    //                reinfRequired = tempReinfButt == null;
+    //                if (!reinfRequired) { currRienfButt = tempReinfButt; }
+    //            }
+    //            if (creatRequired)
+    //            {
+    //                CreationButton tempCreatButt = child.GetComponentInChildren<CreationButton>();
+    //                creatRequired = tempCreatButt == null;
+    //                if (!creatRequired) { currCreatButt = tempCreatButt; }
+    //            }
+    //        }
 
-            if (reinfRequired)
-            {
-                RectTransform prefabInst = LeanPool.Spawn(reinforcementButtonPrefab);
-                ReinforcementButton rf = prefabInst.GetComponentInChildren<ReinforcementButton>();
-                currRienfButt = rf;
+    //        if (reinfRequired)
+    //        {
+    //            RectTransform prefabInst = LeanPool.Spawn(reinforcementButtonPrefab);
+    //            ReinforcementButton rf = prefabInst.GetComponentInChildren<ReinforcementButton>();
+    //            currRienfButt = rf;
 
-                RectTransform transf = (RectTransform)rf.transform;
-                InitButtonPosition(placeHolder, prefabInst);
+    //            RectTransform transf = (RectTransform)rf.transform;
+    //            InitButtonPosition(placeHolder, prefabInst);
 
 
-            }
-            if (creatRequired)
-            {
-                RectTransform prefabInst = LeanPool.Spawn(creationButtonPrefab);
-                CreationButton cr = prefabInst.GetComponentInChildren<CreationButton>();
-                currCreatButt = cr;
+    //        }
+    //        if (creatRequired)
+    //        {
+    //            RectTransform prefabInst = LeanPool.Spawn(creationButtonPrefab);
+    //            CreationButton cr = prefabInst.GetComponentInChildren<CreationButton>();
+    //            currCreatButt = cr;
 
-                RectTransform transf = (RectTransform)cr.transform;
-                InitButtonPosition(placeHolder, prefabInst);
-            }
+    //            RectTransform transf = (RectTransform)cr.transform;
+    //            InitButtonPosition(placeHolder, prefabInst);
+    //        }
 
-            creationButtons[i] = currCreatButt;
-            reinforcementButtons[i] = currRienfButt;
-        }
-    }
+    //        creationButtons[i] = currCreatButt;
+    //        reinforcementButtons[i] = currRienfButt;
+    //    }
+    //}
     private void InitButtonPosition(Transform parentPlaceHolder, RectTransform rectTransform)
     {
         rectTransform.SetParent(parentPlaceHolder, false);
@@ -112,29 +112,29 @@ public class UISpawnerManager : MonoBehaviour
     }
     #endregion
 
-    public void ShowCreationView(Spawner spawner)
-    {
-        GameEventMessage.SendEvent(showCreationUIEvent);
+    //public void ShowCreationView(Spawner spawner)
+    //{
+    //    GameEventMessage.SendEvent(showCreationUIEvent);
 
-        HideCreationButtons();
-        UpdateCreationButtons(spawner);
-        ShowCreationButtons(spawner.spawnUnits.Count);
-    }
+    //    HideCreationButtons();
+    //    UpdateCreationButtons(spawner);
+    //    ShowCreationButtons(spawner.spawnOptions.Count);//mierdilla
+    //}
 
-    private void UpdateCreationButtons(Spawner spawner)
-    {
-        List<AIUnitData> spawnableUnits = spawner.spawnUnits;
+    //private void UpdateCreationButtons(Spawner spawner)
+    //{
+    //    List<AIUnitData> spawnableUnits = spawner.spawnOptions;//mierdila
 
-        for (int i = 0; i < spawnableUnits.Count; i++)
-        {
-            AIUnitData currentData = spawnableUnits[i];
+    //    for (int i = 0; i < spawnableUnits.Count; i++)
+    //    {
+    //        AIUnitData currentData = spawnableUnits[i];
 
-            Debug.Assert(selectionMenuManager.portraitDictionary.dictionary.TryGetValue(currentData, out Sprite buttonSprite), "update the portrait dictionary!");
+    //        Debug.Assert(selectionMenuManager.portraitDictionary.dictionary.TryGetValue(currentData, out Sprite buttonSprite), "update the portrait dictionary!");
 
-            CreationButton currCreationButton = creationButtons[i];
-            currCreationButton.UpdateButton(spawner, currentData, buttonSprite);
-        }
-    }
+    //        CreationButton currCreationButton = creationButtons[i];
+    //        currCreationButton.UpdateButton(spawner, currentData, buttonSprite);
+    //    }
+    //}
     private void ShowCreationButtons(int count)
     {
         for (int i = 0; i < count; i++)

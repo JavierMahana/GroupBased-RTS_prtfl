@@ -6,7 +6,8 @@ using UnityEngine.EventSystems;
 
 public class SelectionManager : MonoBehaviour
 {
-    public Action<ISelectable> SelectedHaveBeenUpdated = delegate { };    
+    public event Action<ISelectable> SelectedHaveBeenUpdated = delegate { };
+    public event Action<ISelectable> NewSelection = delegate { };
 
     private const float RAY_LENGTH = 20f;
 
@@ -27,13 +28,13 @@ public class SelectionManager : MonoBehaviour
             {
                 SelectNewEntity(newSelected);
             }
-            SelectedHaveBeenUpdated(selected);
+            NewSelection(selected);
         }
     }
     private void OnDisable()
     {
         if(!quit)
-            selected.SelectionStateChanged -= OnSelectedUpdate;
+            selected.SelectionStateChanged -= CallSelectionUpdateEvent;
     }
     private bool quit;
     private void OnApplicationQuit()
@@ -47,12 +48,12 @@ public class SelectionManager : MonoBehaviour
     {
         if (selected != null)
         {
-            selected.SelectionStateChanged -= OnSelectedUpdate;
+            selected.SelectionStateChanged -= CallSelectionUpdateEvent;
             selected.Deselect(this);
             selected = null;
         }
     }
-    private void OnSelectedUpdate()
+    private void CallSelectionUpdateEvent()
     {
         SelectedHaveBeenUpdated(selected);
     }
@@ -60,7 +61,7 @@ public class SelectionManager : MonoBehaviour
     {
         deathSelected.OnDeath -= OnSelectedDeath; 
 
-        DeselectCurrentSelected();
+        DeselectCurrentSelected();        
         SelectedHaveBeenUpdated(selected);
     }
     private void SelectNewEntity(ISelectable newSelected)
@@ -72,7 +73,7 @@ public class SelectionManager : MonoBehaviour
             kSelected.OnDeath += OnSelectedDeath;
         }
 
-        selected.SelectionStateChanged += OnSelectedUpdate;
+        selected.SelectionStateChanged += CallSelectionUpdateEvent;
         selected.Select(this);       
     }
 

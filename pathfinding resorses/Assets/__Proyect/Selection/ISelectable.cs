@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 //los agentes referencian a los a datos de su padre
-public interface ISelectable : ITriggerSelection
+public interface ISelectable : ITriggerSelection, IDisplayable
 {    
     event SelectionEvent SelectionStateChanged;
     void Select(SelectionManager manager);

@@ -7,8 +7,29 @@ using System;
 using Lean.Pool;
 
 [RequireComponent(typeof(Health))]
-public class AIAgent : SerializedMonoBehaviour, ITriggerSelection, ITargetable, IActable
+public class AIAgent : SerializedMonoBehaviour, ITriggerSelection, ITargetable, IActable, IDisplayable
 {
+    #region displayable
+    public string DisplayName => name;
+    public Sprite DisplayIcon => icon;
+    public string DisplayDesc => desc;
+    public Health DisplayHealth => health;
+    public Vector2Int? CapacityDisplay => null;
+    public List<IDisplayable> DependentDisplayables => null;
+    public List<AbilityData> Abilities => null;
+    public BaseButtonData[,] ComandCardButtons => null;
+
+
+    [SerializeField]
+    private Sprite icon = null;
+    [SerializeField]
+    private string desc = null; 
+
+    #endregion
+
+
+
+
     public event KillableEvent OnDeath = delegate { };
     public event ActionEvent OnActionStart = delegate { };
 

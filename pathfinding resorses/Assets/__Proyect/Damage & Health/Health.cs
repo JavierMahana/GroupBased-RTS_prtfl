@@ -27,16 +27,13 @@ public class Health : MonoBehaviour
         }
         if (currentHealth <= 0)
         {
-            gameObject.SetActive(false);
-            //LeanPool.Despawn(this);
+            //gameObject.SetActive(false);
+            LeanPool.Despawn(this);
         }
     }
     
     private void Awake()
-    {
-        //damagable = GetComponent<IDamagable>();
-        //if (damagable == null || data == null) Debug.LogError("Must assign variables!");
-        
+    {        
         StartUpVariables();
     }
     private void StartUpVariables()

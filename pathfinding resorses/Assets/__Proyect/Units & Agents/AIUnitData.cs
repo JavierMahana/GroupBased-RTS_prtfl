@@ -3,6 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using Sirenix.OdinInspector;
 
+//la estructura de datos no esta muy buena.
+//es medio un desastre
+//lo que voy a hacer es desordenarla aun más ahora.
+//lograr que la UI funcione y luego la ordeno.
+//sae
 [CreateAssetMenu (menuName ="AI/Unit Data")]
 public class AIUnitData : SerializedScriptableObject
 {
@@ -12,15 +17,18 @@ public class AIUnitData : SerializedScriptableObject
     [AssetsOnly]
     public AIAgent childPrefab;
 
+    [Required]
+    public DisplayableData displayebleData;
+
     public ITargetableFilter targetFilter;
     public FormationData formationData;
-    public UnitType maxSize = UnitType.STANDART;
+    public UnitSize maxSize = UnitSize.STANDART;
     public LayerMask detectableLayers;
     public LayerMask obstacleLayerMask = 1<<9;
     public float detectionRadious = 2f;
 }
 
-public enum UnitType
+public enum UnitSize
 {
     MASSIVE = 1,
     GRAND = 2,

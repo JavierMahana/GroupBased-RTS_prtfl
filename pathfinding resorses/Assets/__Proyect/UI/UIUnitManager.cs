@@ -5,7 +5,7 @@ using Sirenix.OdinInspector;
 using Lean.Pool;
 using Doozy.Engine;
 
-
+//así que practicamente estoy rompiendolo
 //los agent panels estarán en el panel flexible y las habilidades en el estatico
 [RequireComponent(typeof(UISelectionMenuManager))]
 public class UIUnitManager : MonoBehaviour
@@ -19,37 +19,37 @@ public class UIUnitManager : MonoBehaviour
     private void Start()
     {
         selectionMenuManager = GetComponent<UISelectionMenuManager>();
-        InitAgentPanels();
+        //InitAgentPanels();
     }
-    private void InitAgentPanels()
-    {
-        RectTransform[] gridPlaceHolders = selectionMenuManager.staticGridPanelPlaceHolders;
-        unitAgentPanels = new AgentPanel[gridPlaceHolders.Length];
+    //private void InitAgentPanels()
+    //{
+    //    RectTransform[] gridPlaceHolders = selectionMenuManager.staticGridPanelPlaceHolders;
+    //    unitAgentPanels = new AgentPanel[gridPlaceHolders.Length];
 
-        for (int i = 0; i < gridPlaceHolders.Length; i++)
-        {
+    //    for (int i = 0; i < gridPlaceHolders.Length; i++)
+    //    {
 
-            RectTransform placeHolder = gridPlaceHolders[i];
+    //        RectTransform placeHolder = gridPlaceHolders[i];
         
-            AgentPanel tempPanel = placeHolder.GetComponentInChildren<AgentPanel>();
-            if (tempPanel != null)
-            {
-                unitAgentPanels[i] = tempPanel;
-                continue;
-            }
+    //        AgentPanel tempPanel = placeHolder.GetComponentInChildren<AgentPanel>();
+    //        if (tempPanel != null)
+    //        {
+    //            unitAgentPanels[i] = tempPanel;
+    //            continue;
+    //        }
 
-            AgentPanel newPanel;
-            RectTransform rectTransform = LeanPool.Spawn(agentPanelPrefab);
-            SetRectPosition(placeHolder, rectTransform);
+    //        AgentPanel newPanel;
+    //        RectTransform rectTransform = LeanPool.Spawn(agentPanelPrefab);
+    //        SetRectPosition(placeHolder, rectTransform);
 
-            newPanel = rectTransform.GetComponentInChildren<AgentPanel>();
-            Debug.Assert(newPanel != null, "fix the panel prefab!");
+    //        newPanel = rectTransform.GetComponentInChildren<AgentPanel>();
+    //        Debug.Assert(newPanel != null, "fix the panel prefab!");
 
 
 
-            unitAgentPanels[i] = newPanel;
-        }
-    }
+    //        unitAgentPanels[i] = newPanel;
+    //    }
+    //}
     private void SetRectPosition(Transform parentPlaceHolder, RectTransform rectTransform)
     {
         rectTransform.SetParent(parentPlaceHolder, false);
@@ -60,29 +60,29 @@ public class UIUnitManager : MonoBehaviour
         rectTransform.offsetMax = Vector2.zero;
         rectTransform.offsetMin = Vector2.zero;
     }
-    public void ShowUnitSelection(AIUnit unit, int page = 1)
-    {
-        GameEventMessage.SendEvent(showUnitUIEvent);
+    //public void ShowUnitSelection(AIUnit unit, int page = 1)
+    //{
+    //    GameEventMessage.SendEvent(showUnitUIEvent);
 
-        List<AIAgent> unitChildren = unit.children;
+    //    List<AIAgent> unitChildren = unit.children;
 
-        int count = selectionMenuManager.GetFlexiblePanelCount(unitChildren.Count, page);        
+    //    int count = selectionMenuManager.GetFlexiblePanelCount(unitChildren.Count, page);        
 
-        UpdateAgentPanels(unit, count, unitChildren, page);
-        HideAgentPanels();
-        ShowAgentPanels(count);
-    }
-    //must be on 
-    public void ChangePageOfUnitSelection(AIUnit unit, int page)
-    {
-        List<AIAgent> unitChildren = unit.children;
+    //    UpdateAgentPanels(unit, count, unitChildren, page);
+    //    HideAgentPanels();
+    //    ShowAgentPanels(count);
+    //}
+    ////must be on 
+    //public void ChangePageOfUnitSelection(AIUnit unit, int page)
+    //{
+    //    List<AIAgent> unitChildren = unit.children;
 
-        int count = selectionMenuManager.GetFlexiblePanelCount(unitChildren.Count, page);
+    //    int count = selectionMenuManager.GetFlexiblePanelCount(unitChildren.Count, page);
 
-        UpdateAgentPanels(unit, count, unitChildren, page);
-        HideAgentPanels();
-        ShowAgentPanels(count);
-    }
+    //    UpdateAgentPanels(unit, count, unitChildren, page);
+    //    HideAgentPanels();
+    //    ShowAgentPanels(count);
+    //}
 
 
     private void UpdateAgentPanels(AIUnit unit, int count, List<AIAgent> unitChildren, int page)
@@ -90,7 +90,7 @@ public class UIUnitManager : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             //el index del hijo es el relacionado al numero de la pagina
-            AIAgent child = unitChildren[i + (UISelectionMenuManager.FLEXIBLE_PANEL_SPACES * (page - 1))];
+            AIAgent child = unitChildren[i + (UIFlexibleGridPanel.FLEXIBLE_PANEL_SPACES * (page - 1))];
 
             Debug.Assert(selectionMenuManager.portraitDictionary.dictionary.TryGetValue(child.parent.Data, out Sprite sprite), "update the portrait dictionary!");
 
